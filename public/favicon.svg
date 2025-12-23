@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Outer ring -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#D4AF37" stroke-width="3"/>
+  <!-- Inner background -->
+  <circle cx="50" cy="50" r="42" fill="#1a1a2e"/>
+  <!-- Left laurel -->
+  <path d="M20 50 C20 35, 30 25, 35 50 C30 45, 25 50, 20 50" fill="#D4AF37" opacity="0.3"/>
+  <path d="M22 60 C22 48, 32 40, 36 58 C32 54, 27 58, 22 60" fill="#D4AF37" opacity="0.3"/>
+  <!-- Right laurel -->
+  <path d="M80 50 C80 35, 70 25, 65 50 C70 45, 75 50, 80 50" fill="#D4AF37" opacity="0.3"/>
+  <path d="M78 60 C78 48, 68 40, 64 58 C68 54, 73 58, 78 60" fill="#D4AF37" opacity="0.3"/>
+  <!-- Crown icon -->
+  <path d="M35 55 L40 38 L50 48 L60 38 L65 55 L35 55 Z M35 57 L65 57 L65 62 L35 62 Z" fill="#D4AF37"/>
+</svg>
