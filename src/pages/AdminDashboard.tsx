@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, LogOut, Users, CheckCircle, XCircle, Trash2, Plus, FolderOpen } from "lucide-react";
+import { Loader2, LogOut, Users, CheckCircle, XCircle, Trash2, Plus, FolderOpen, Image, Upload } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +19,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Creator = Tables<"creators">;
 type Category = Tables<"categories">;
+type GalleryItem = Tables<"gallery">;
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -27,9 +29,17 @@ const AdminDashboard = () => {
 
   const [creators, setCreators] = useState<Creator[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCategory, setNewCategory] = useState({ name: "", description: "" });
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+
+  // Gallery form
+  const [galleryDialogOpen, setGalleryDialogOpen] = useState(false);
+  const [newGallery, setNewGallery] = useState({ title: "", description: "" });
+  const [galleryFile, setGalleryFile] = useState<File | null>(null);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -45,13 +55,15 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [creatorsRes, categoriesRes] = await Promise.all([
+      const [creatorsRes, categoriesRes, galleryRes] = await Promise.all([
         supabase.from("creators").select("*").order("created_at", { ascending: false }),
         supabase.from("categories").select("*").order("name"),
+        supabase.from("gallery").select("*").order("created_at", { ascending: false }),
       ]);
 
       if (creatorsRes.data) setCreators(creatorsRes.data);
       if (categoriesRes.data) setCategories(categoriesRes.data);
+      if (galleryRes.data) setGalleryItems(galleryRes.data);
       setLoading(false);
     };
 
@@ -90,11 +102,15 @@ const AdminDashboard = () => {
 
   const handleAddCategory = async () => {
     if (!newCategory.name.trim()) return;
-    
-    const { data, error } = await supabase.from("categories").insert({
-      name: newCategory.name,
-      description: newCategory.description || null,
-    }).select().single();
+
+    const { data, error } = await supabase
+      .from("categories")
+      .insert({
+        name: newCategory.name,
+        description: newCategory.description || null,
+      })
+      .select()
+      .single();
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -113,6 +129,70 @@ const AdminDashboard = () => {
     } else {
       setCategories(categories.filter((c) => c.id !== id));
       toast({ title: "Success", description: "Category deleted" });
+    }
+  };
+
+  // Gallery handlers
+  const handleAddGalleryImage = async () => {
+    if (!galleryFile) {
+      toast({ title: "Error", description: "Please select an image", variant: "destructive" });
+      return;
+    }
+
+    setUploadingGallery(true);
+
+    try {
+      const fileExt = galleryFile.name.split(".").pop();
+      const filePath = `gallery/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage.from("profile-photos").upload(filePath, galleryFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("profile-photos").getPublicUrl(filePath);
+
+      const { data, error } = await supabase
+        .from("gallery")
+        .insert({
+          image_url: urlData.publicUrl,
+          title: newGallery.title || null,
+          description: newGallery.description || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setGalleryItems([data, ...galleryItems]);
+      setNewGallery({ title: "", description: "" });
+      setGalleryFile(null);
+      setGalleryDialogOpen(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      toast({ title: "Success", description: "Image added to gallery" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to upload image", variant: "destructive" });
+    } finally {
+      setUploadingGallery(false);
+    }
+  };
+
+  const handleToggleGalleryActive = async (id: string, active: boolean) => {
+    const { error } = await supabase.from("gallery").update({ is_active: active }).eq("id", id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setGalleryItems(galleryItems.map((g) => (g.id === id ? { ...g, is_active: active } : g)));
+      toast({ title: "Success", description: `Image ${active ? "shown" : "hidden"}` });
+    }
+  };
+
+  const handleDeleteGalleryItem = async (id: string) => {
+    const { error } = await supabase.from("gallery").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setGalleryItems(galleryItems.filter((g) => g.id !== id));
+      toast({ title: "Success", description: "Image deleted" });
     }
   };
 
@@ -140,7 +220,7 @@ const AdminDashboard = () => {
           <div>
             <h1 className="font-serif text-3xl font-bold">Admin Dashboard</h1>
             <p className="text-muted-foreground">
-              {isSuperAdmin ? "Superadmin" : "Admin"} - Manage creators and categories
+              {isSuperAdmin ? "Superadmin" : "Admin"} - Manage creators, categories & gallery
             </p>
           </div>
           <Button variant="outline" onClick={handleSignOut}>
@@ -149,7 +229,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -189,15 +269,27 @@ const AdminDashboard = () => {
               </div>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-full bg-purple-500/20">
+                  <Image className="h-6 w-6 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Gallery Images</p>
+                  <p className="text-3xl font-bold">{galleryItems.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="pending" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="pending">
-              Pending ({pendingCreators.length})
-            </TabsTrigger>
+            <TabsTrigger value="pending">Pending ({pendingCreators.length})</TabsTrigger>
             <TabsTrigger value="approved">Approved</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
+            <TabsTrigger value="gallery">Gallery</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending">
@@ -232,7 +324,11 @@ const AdminDashboard = () => {
                               <Button size="sm" onClick={() => handleApprove(creator.id, true)}>
                                 <CheckCircle className="h-4 w-4 mr-1" /> Approve
                               </Button>
-                              <Button size="sm" variant="destructive" onClick={() => handleDeleteCreator(creator.id)}>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteCreator(creator.id)}
+                              >
                                 <XCircle className="h-4 w-4 mr-1" /> Reject
                               </Button>
                             </div>
@@ -370,6 +466,124 @@ const AdminDashboard = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="gallery">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Gallery</CardTitle>
+                  <CardDescription>Manage event photos and images</CardDescription>
+                </div>
+                <Dialog open={galleryDialogOpen} onOpenChange={setGalleryDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="btn-gold">
+                      <Upload className="h-4 w-4 mr-2" /> Upload Image
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Upload Gallery Image</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div>
+                        <Label htmlFor="galleryFile">Image</Label>
+                        <Input
+                          id="galleryFile"
+                          type="file"
+                          accept="image/*"
+                          ref={fileInputRef}
+                          onChange={(e) => setGalleryFile(e.target.files?.[0] || null)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="galleryTitle">Title (optional)</Label>
+                        <Input
+                          id="galleryTitle"
+                          value={newGallery.title}
+                          onChange={(e) => setNewGallery({ ...newGallery, title: e.target.value })}
+                          placeholder="e.g., Awards Night 2024"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="galleryDesc">Description (optional)</Label>
+                        <Textarea
+                          id="galleryDesc"
+                          value={newGallery.description}
+                          onChange={(e) => setNewGallery({ ...newGallery, description: e.target.value })}
+                          placeholder="Brief description of the image"
+                          rows={3}
+                        />
+                      </div>
+                      <Button
+                        onClick={handleAddGalleryImage}
+                        className="w-full btn-gold"
+                        disabled={uploadingGallery}
+                      >
+                        {uploadingGallery ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          "Upload Image"
+                        )}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                {galleryItems.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No gallery images yet</p>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {galleryItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`relative group rounded-lg overflow-hidden border ${
+                          item.is_active ? "border-border" : "border-destructive/50 opacity-60"
+                        }`}
+                      >
+                        <img
+                          src={item.image_url}
+                          alt={item.title || "Gallery image"}
+                          className="w-full aspect-square object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                          {item.title && (
+                            <p className="text-white text-sm font-medium text-center truncate w-full">
+                              {item.title}
+                            </p>
+                          )}
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant={item.is_active ? "secondary" : "default"}
+                              onClick={() => handleToggleGalleryActive(item.id, !item.is_active)}
+                            >
+                              {item.is_active ? "Hide" : "Show"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteGalleryItem(item.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        {!item.is_active && (
+                          <Badge variant="destructive" className="absolute top-2 left-2">
+                            Hidden
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
