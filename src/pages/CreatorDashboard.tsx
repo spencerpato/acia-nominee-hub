@@ -57,7 +57,7 @@ const CreatorDashboard = () => {
         .from("creators")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
         toast({ title: "Error", description: "Failed to load profile", variant: "destructive" });
@@ -157,11 +157,13 @@ const CreatorDashboard = () => {
         <main className="flex-1 flex items-center justify-center">
           <Card className="max-w-md">
             <CardHeader>
-              <CardTitle>No Creator Profile</CardTitle>
-              <CardDescription>You don't have a creator profile yet.</CardDescription>
+              <CardTitle>No Nominee Profile</CardTitle>
+              <CardDescription>Complete your nominee profile to appear on the nominees list.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => navigate("/auth?mode=signup")} className="btn-gold">Register as Creator</Button>
+              <Button onClick={() => navigate("/creator/register")} className="btn-gold">
+                Complete Registration
+              </Button>
             </CardContent>
           </Card>
         </main>

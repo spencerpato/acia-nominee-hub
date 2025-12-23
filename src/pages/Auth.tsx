@@ -38,7 +38,13 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signIn, signUp } = useAuth();
-  const { isAdmin, isSuperAdmin, isCreator, loading: roleLoading } = useUserRole(user?.id);
+  const {
+    isAdmin,
+    isSuperAdmin,
+    isCreator,
+    loading: roleLoading,
+    refetchRoles,
+  } = useUserRole(user?.id);
   const { data: categories } = useCategories();
 
   const [loading, setLoading] = useState(false);
@@ -59,9 +65,16 @@ const Auth = () => {
     if (user && !roleLoading) {
       if (isAdmin || isSuperAdmin) {
         navigate("/admin");
-      } else {
-        navigate("/dashboard");
+        return;
       }
+
+      // If not an admin, send them to creator onboarding if they don't yet have creator role
+      if (!isCreator) {
+        navigate("/creator/register");
+        return;
+      }
+
+      navigate("/dashboard");
     }
   }, [user, isAdmin, isSuperAdmin, isCreator, roleLoading, navigate]);
 
@@ -92,43 +105,46 @@ const Auth = () => {
         if (error) throw error;
         if (!data.user) throw new Error("Registration failed");
 
-        // Create creator profile
-        const { error: creatorError } = await supabase.from("creators").insert({
-          user_id: data.user.id,
-          full_name: formData.fullName,
-          alias: formData.alias,
-          email: formData.email,
-          phone: formData.phone || null,
-          category_id: formData.categoryId,
-        });
-
-        if (creatorError) {
-          if (creatorError.message.includes("duplicate")) {
-            throw new Error("This alias is already taken");
-          }
-          throw creatorError;
-        }
-
-        toast({ title: "Welcome!", description: "Your account has been created." });
-        // useEffect will handle redirect based on role
-      } else {
-        const result = signInSchema.safeParse(formData);
-        if (!result.success) {
-          const fieldErrors: Record<string, string> = {};
-          result.error.errors.forEach((err) => {
-            fieldErrors[err.path[0] as string] = err.message;
+        // Important: when email confirmation is enabled, session can be null here.
+        // In that case we can't insert into protected tables (RLS) yet.
+        if (!data.session) {
+          toast({
+            title: "Confirm your email",
+            description: "Please confirm your email, then sign in to complete nominee registration.",
           });
-          setErrors(fieldErrors);
-          setLoading(false);
+          navigate("/auth?mode=signin");
           return;
         }
 
-        const { error } = await signIn(formData.email, formData.password);
-        if (error) throw error;
-
-        toast({ title: "Welcome back!" });
-        // useEffect will handle redirect based on role
+        toast({ title: "Welcome!", description: "Account created. Complete your nominee profile." });
+        navigate("/creator/register");
+        return;
       }
+
+      const result = signInSchema.safeParse(formData);
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        result.error.errors.forEach((err) => {
+          fieldErrors[err.path[0] as string] = err.message;
+        });
+        setErrors(fieldErrors);
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await signIn(formData.email, formData.password);
+      if (error) throw error;
+
+      // If this is the superadmin email, ensure server-side role exists.
+      const { error: bootstrapError } = await supabase.functions.invoke("bootstrap-superadmin");
+      if (bootstrapError) {
+        // Non-fatal; user might not be superadmin.
+      } else {
+        refetchRoles();
+      }
+
+      toast({ title: "Welcome back!" });
+      // useEffect will handle redirect based on role
     } catch (error: any) {
       toast({
         title: "Error",

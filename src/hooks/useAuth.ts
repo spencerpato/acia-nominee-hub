@@ -67,34 +67,43 @@ export const useUserRole = (userId: string | undefined) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchRoles = async () => {
+    if (!userId) {
+      setRoles([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+
+      if (error) throw error;
+      setRoles(data?.map((r) => r.role) || []);
+    } catch {
+      // Intentionally silent to avoid leaking sensitive auth details
+      setRoles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchRoles = async () => {
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId);
-
-        if (error) throw error;
-        setRoles(data?.map((r) => r.role) || []);
-      } catch (error) {
-        console.error("Error fetching roles:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    setLoading(true);
     fetchRoles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
+
+  const refetchRoles = () => {
+    setLoading(true);
+    fetchRoles();
+  };
 
   const isAdmin = roles.includes("admin") || roles.includes("superadmin");
   const isSuperAdmin = roles.includes("superadmin");
   const isCreator = roles.includes("creator");
 
-  return { roles, loading, isAdmin, isSuperAdmin, isCreator };
+  return { roles, loading, isAdmin, isSuperAdmin, isCreator, refetchRoles };
 };
