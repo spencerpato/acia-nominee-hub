@@ -9,6 +9,10 @@ import Nominees from "./pages/Nominees";
 import CreatorRegistration from "./pages/CreatorRegistration";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import Leaderboard from "./pages/Leaderboard";
+import Gallery from "./pages/Gallery";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +30,10 @@ const App = () => (
           <Route path="/creator/register" element={<CreatorRegistration />} />
           <Route path="/dashboard" element={<CreatorDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
