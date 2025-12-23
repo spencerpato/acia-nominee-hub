@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { z } from "zod";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useUserRole } from "@/hooks/useAuth";
 import { useCategories } from "@/hooks/useCreators";
 import { supabase } from "@/integrations/supabase/client";
 import Logo from "@/components/Logo";
@@ -37,7 +37,8 @@ const Auth = () => {
   const isSignUp = mode === "signup";
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, signUp } = useAuth();
+  const { user, signIn, signUp } = useAuth();
+  const { isAdmin, isSuperAdmin, isCreator, loading: roleLoading } = useUserRole(user?.id);
   const { data: categories } = useCategories();
 
   const [loading, setLoading] = useState(false);
@@ -52,6 +53,17 @@ const Auth = () => {
     categoryId: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Redirect based on role after login
+  useEffect(() => {
+    if (user && !roleLoading) {
+      if (isAdmin || isSuperAdmin) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    }
+  }, [user, isAdmin, isSuperAdmin, isCreator, roleLoading, navigate]);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -98,7 +110,7 @@ const Auth = () => {
         }
 
         toast({ title: "Welcome!", description: "Your account has been created." });
-        navigate("/dashboard");
+        // useEffect will handle redirect based on role
       } else {
         const result = signInSchema.safeParse(formData);
         if (!result.success) {
@@ -115,7 +127,7 @@ const Auth = () => {
         if (error) throw error;
 
         toast({ title: "Welcome back!" });
-        navigate("/dashboard");
+        // useEffect will handle redirect based on role
       }
     } catch (error: any) {
       toast({
