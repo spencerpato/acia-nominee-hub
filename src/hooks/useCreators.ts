@@ -22,6 +22,9 @@ export interface Creator {
   } | null;
 }
 
+// Superadmin email that should never appear as a nominee
+const SUPERADMIN_EMAIL = "awardsacia@gmail.com";
+
 export const useCreators = (categoryFilter?: string) => {
   return useQuery({
     queryKey: ["creators", categoryFilter],
@@ -34,6 +37,7 @@ export const useCreators = (categoryFilter?: string) => {
         `)
         .eq("is_approved", true)
         .eq("is_active", true)
+        .neq("email", SUPERADMIN_EMAIL) // Exclude superadmin from nominees
         .order("vote_count", { ascending: false });
 
       if (categoryFilter && categoryFilter !== "all") {
