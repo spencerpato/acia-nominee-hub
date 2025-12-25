@@ -13,7 +13,7 @@ const Privacy = () => {
         <title>Privacy Policy | ACIA Awards</title>
         <meta
           name="description"
-          content="Learn how the Africa Content and Influencers Awards (ACIA) collects, uses, and protects your personal information."
+          content="Learn how the African Creator Impact Awards (ACIA) collects, uses, and protects your personal information."
         />
         <link rel="canonical" href={canonicalUrl} />
       </Helmet>

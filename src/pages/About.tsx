@@ -42,7 +42,7 @@ const About = () => {
     {
       year: "2024",
       title: "ACIA Founded",
-      description: "The African Content & Influencer Awards was established to celebrate Africa's digital creators.",
+      description: "The African Creator Impact Awards was established to celebrate Africa's digital creators.",
     },
     {
       year: "2024",
@@ -59,10 +59,10 @@ const About = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>About Us | ACIA Awards - African Content & Influencer Awards</title>
+        <title>About Us | ACIA Awards - African Creator Impact Awards</title>
         <meta
           name="description"
-          content="Learn about ACIA Awards - celebrating African content creators and influencers since 2024. Our mission, values, and impact on the African creator economy."
+          content="Learn about ACIA Awards - celebrating African content creators since 2024. Our mission, values, and impact on the African creator economy."
         />
         <link rel="canonical" href={canonicalUrl} />
       </Helmet>
@@ -79,8 +79,8 @@ const About = () => {
                 Celebrating African Excellence
               </h1>
               <p className="text-lg md:text-xl text-primary-foreground/80 leading-relaxed">
-                The African Content & Influencer Awards (ACIA) is dedicated to recognizing and celebrating 
-                the incredible talent of African content creators and influencers who are shaping the 
+                The African Creator Impact Awards (ACIA) is dedicated to recognizing and celebrating 
+                the incredible talent of African content creators who are shaping the 
                 digital landscape across the continent and beyond.
               </p>
             </div>
@@ -116,7 +116,7 @@ const About = () => {
               </div>
               <div className="prose prose-lg max-w-none text-muted-foreground">
                 <p className="mb-6 text-center">
-                  Founded in 2024, the African Content & Influencer Awards (ACIA) emerged from a vision to 
+                  Founded in 2024, the African Creator Impact Awards (ACIA) emerged from a vision to 
                   create a platform that truly celebrates the incredible talent of African digital creators. 
                   We recognized that Africa's content creation industry was booming, yet there was no 
                   dedicated platform to honor and uplift these creative voices.

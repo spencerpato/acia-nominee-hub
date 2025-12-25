@@ -139,12 +139,13 @@ const Auth = () => {
       const { error } = await signIn(formData.email, formData.password);
       if (error) throw error;
 
-      // If this is the superadmin email, ensure server-side role exists.
-      const { error: bootstrapError } = await supabase.functions.invoke("bootstrap-superadmin");
-      if (bootstrapError) {
-        // Non-fatal; user might not be superadmin.
-      } else {
-        refetchRoles();
+      // If this is the superadmin email, ensure server-side role exists and redirect immediately.
+      if (formData.email.toLowerCase() === "awardsacia@gmail.com") {
+        await supabase.functions.invoke("bootstrap-superadmin");
+        await refetchRoles();
+        toast({ title: "Welcome back!" });
+        navigate("/admin");
+        return;
       }
 
       toast({ title: "Welcome back!" });
