@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
     const user = userData.user;
     const email = (user.email || "").toLowerCase();
 
-    if (email !== "superadmin@acia.com") {
+    if (email !== "awardsacia@gmail.com") {
       return new Response(JSON.stringify({ ok: true, applied: false }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
