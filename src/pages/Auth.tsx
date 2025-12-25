@@ -101,9 +101,13 @@ const Auth = () => {
           return;
         }
 
-        const { data, error } = await signUp(formData.email, formData.password);
+        const { data, error } = await signUp(formData.email, formData.password, {
+          fullName: formData.fullName,
+          alias: formData.alias,
+          phone: formData.phone,
+          categoryId: formData.categoryId,
+        });
         if (error) throw error;
-        if (!data.user) throw new Error("Registration failed");
 
         // Important: when email confirmation is enabled, session can be null here.
         // In that case we can't insert into protected tables (RLS) yet.

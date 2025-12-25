@@ -35,6 +35,7 @@ const CreatorRegistration = () => {
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ fullName: "", alias: "", phone: "", categoryId: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [prefilled, setPrefilled] = useState(false);
 
   const canonicalUrl = useMemo(() => `${window.location.origin}/creator/register`, []);
 
@@ -45,6 +46,20 @@ const CreatorRegistration = () => {
   useEffect(() => {
     if (!roleLoading && (isAdmin || isSuperAdmin)) navigate("/admin");
   }, [isAdmin, isSuperAdmin, roleLoading, navigate]);
+
+  // Prefill form from user metadata
+  useEffect(() => {
+    if (user && !prefilled) {
+      const metadata = user.user_metadata || {};
+      setForm({
+        fullName: metadata.fullName || "",
+        alias: metadata.alias || "",
+        phone: metadata.phone || "",
+        categoryId: metadata.categoryId || "",
+      });
+      setPrefilled(true);
+    }
+  }, [user, prefilled]);
 
   useEffect(() => {
     const checkExisting = async () => {
