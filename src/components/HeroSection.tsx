@@ -18,7 +18,7 @@ const HeroSection = () => {
           <div className="inline-flex items-center gap-2 bg-secondary/20 border border-secondary/30 rounded-full px-4 py-2 mb-8 animate-fade-in">
             <Award className="h-4 w-4 text-secondary" />
             <span className="text-sm text-secondary font-medium">
-              2024 Awards Season Now Open
+              2026 Awards Season Now Open
             </span>
           </div>
 

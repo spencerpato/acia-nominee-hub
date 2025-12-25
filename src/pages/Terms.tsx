@@ -13,7 +13,7 @@ const Terms = () => {
         <title>Terms & Conditions | ACIA Awards</title>
         <meta
           name="description"
-          content="Read the Terms and Conditions for participating in the Africa Content and Influencers Awards (ACIA)."
+          content="Read the Terms and Conditions for participating in the African Creator Impact Awards (ACIA)."
         />
         <link rel="canonical" href={canonicalUrl} />
       </Helmet>
@@ -31,7 +31,7 @@ const Terms = () => {
               <section>
                 <h2 className="text-xl font-semibold">1. Acceptance of Terms</h2>
                 <p>
-                  By accessing or using the Africa Content and Influencers Awards (ACIA) platform,
+                  By accessing or using the African Creator Impact Awards (ACIA) platform,
                   you agree to be bound by these Terms and Conditions. If you do not agree, please
                   do not use this platform.
                 </p>
