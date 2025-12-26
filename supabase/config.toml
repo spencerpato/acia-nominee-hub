@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.assign-creator-role]
 verify_jwt = false
+
+[functions.initiate-payment]
+verify_jwt = false
+
+[functions.lipana-webhook]
+verify_jwt = false
+
+[functions.check-payment-status]
+verify_jwt = false
