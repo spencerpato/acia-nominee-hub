@@ -44,8 +44,11 @@ const CreatorRegistration = () => {
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
-    if (!roleLoading && (isAdmin || isSuperAdmin)) navigate("/admin");
-  }, [isAdmin, isSuperAdmin, roleLoading, navigate]);
+    // Only enforce role redirects once auth state is fully resolved.
+    if (authLoading || !user || roleLoading) return;
+
+    if (isAdmin || isSuperAdmin) navigate("/admin");
+  }, [user, authLoading, isAdmin, isSuperAdmin, roleLoading, navigate]);
 
   // Prefill form from user metadata
   useEffect(() => {
@@ -63,7 +66,13 @@ const CreatorRegistration = () => {
 
   useEffect(() => {
     const checkExisting = async () => {
-      if (!user) return;
+      // If you're admin/superadmin, never go through nominee registration.
+      if (!user || roleLoading) return;
+      if (isAdmin || isSuperAdmin) {
+        navigate("/admin");
+        return;
+      }
+
       const { data, error } = await supabase
         .from("creators")
         .select("id")
@@ -74,7 +83,7 @@ const CreatorRegistration = () => {
     };
 
     if (user) checkExisting();
-  }, [user, navigate]);
+  }, [user, isAdmin, isSuperAdmin, roleLoading, navigate]);
 
   const handleChange = (key: string, value: string) => {
     setForm((p) => ({ ...p, [key]: value }));
