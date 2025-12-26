@@ -120,6 +120,7 @@ const NomineeCard = ({
         creatorName={fullName}
         creatorAlias={alias}
         creatorPhoto={profilePhotoUrl}
+        creatorCategory={category}
         onVoteSuccess={onVoteSuccess}
       />
     </>

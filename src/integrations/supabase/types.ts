@@ -121,6 +121,53 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          checkout_id: string | null
+          created_at: string
+          creator_id: string
+          id: string
+          lipana_response: Json | null
+          payment_status: string
+          phone_number: string
+          reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          checkout_id?: string | null
+          created_at?: string
+          creator_id: string
+          id?: string
+          lipana_response?: Json | null
+          payment_status?: string
+          phone_number: string
+          reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          checkout_id?: string | null
+          created_at?: string
+          creator_id?: string
+          id?: string
+          lipana_response?: Json | null
+          payment_status?: string
+          phone_number?: string
+          reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
