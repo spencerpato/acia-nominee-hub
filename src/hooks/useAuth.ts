@@ -68,11 +68,11 @@ export const useUserRole = (userId: string | undefined) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchRoles = async () => {
+  const fetchRoles = async (): Promise<string[]> => {
     if (!userId) {
       setRoles([]);
       setLoading(false);
-      return;
+      return [];
     }
 
     try {
@@ -82,10 +82,12 @@ export const useUserRole = (userId: string | undefined) => {
         .eq("user_id", userId);
 
       if (error) throw error;
-      setRoles(data?.map((r) => r.role) || []);
+      const fetchedRoles = data?.map((r) => r.role) || [];
+      setRoles(fetchedRoles);
+      return fetchedRoles;
     } catch {
-      // Intentionally silent to avoid leaking sensitive auth details
       setRoles([]);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -97,9 +99,9 @@ export const useUserRole = (userId: string | undefined) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const refetchRoles = () => {
+  const refetchRoles = async (): Promise<string[]> => {
     setLoading(true);
-    fetchRoles();
+    return fetchRoles();
   };
 
   const isAdmin = roles.includes("admin") || roles.includes("superadmin");
