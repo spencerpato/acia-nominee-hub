@@ -1,7 +1,7 @@
 project_id = "qprtljmxfulproevgydc"
 
 [functions.bootstrap-superadmin]
-verify_jwt = true
+verify_jwt = false
 
 [functions.assign-creator-role]
 verify_jwt = true
