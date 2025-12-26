@@ -4,4 +4,4 @@ project_id = "qprtljmxfulproevgydc"
 verify_jwt = false
 
 [functions.assign-creator-role]
-verify_jwt = true
+verify_jwt = false

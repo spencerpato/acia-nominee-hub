@@ -15,8 +15,10 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
+      console.error("Missing Supabase environment variables");
       return new Response(JSON.stringify({ error: "Missing Supabase env" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -25,18 +27,21 @@ Deno.serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      console.error("Missing Authorization header");
       return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    // Use anon key client to validate JWT from Authorization header
+    const anonClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const { data: userData, error: userError } = await anonClient.auth.getUser();
     if (userError || !userData.user) {
+      console.error("User validation failed:", userError?.message);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -44,6 +49,10 @@ Deno.serve(async (req) => {
     }
 
     const user = userData.user;
+    console.log("Processing assign-creator-role for user:", user.id);
+
+    // Use service role client for database operations
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Only assign creator role if a creator profile exists.
     const { data: creatorRow, error: creatorError } = await supabase
