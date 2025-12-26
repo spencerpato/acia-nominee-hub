@@ -67,26 +67,24 @@ export const useAuth = () => {
 export const useUserRole = (userId: string | undefined) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
 
-  const fetchRoles = async (): Promise<string[]> => {
-    if (!userId) {
-      setRoles([]);
-      setLoading(false);
-      return [];
-    }
-
+  const fetchRoles = async (uid: string): Promise<string[]> => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", userId);
+        .eq("user_id", uid);
 
       if (error) throw error;
       const fetchedRoles = data?.map((r) => r.role) || [];
       setRoles(fetchedRoles);
+      setLoadedUserId(uid);
       return fetchedRoles;
     } catch {
+      // Intentionally silent to avoid leaking sensitive auth details
       setRoles([]);
+      setLoadedUserId(uid);
       return [];
     } finally {
       setLoading(false);
@@ -94,19 +92,34 @@ export const useUserRole = (userId: string | undefined) => {
   };
 
   useEffect(() => {
+    if (!userId) {
+      setRoles([]);
+      setLoadedUserId(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    fetchRoles();
+    // Ensure loadedUserId is reset for this uid so consumers can reliably wait.
+    setLoadedUserId(null);
+    fetchRoles(userId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const refetchRoles = async (): Promise<string[]> => {
+    if (!userId) return [];
     setLoading(true);
-    return fetchRoles();
+    setLoadedUserId(null);
+    return fetchRoles(userId);
   };
+
+  // Prevent race conditions when userId changes: treat roles as loading
+  // until we've completed at least one fetch for the current userId.
+  const roleLoading = loading || (!!userId && loadedUserId !== userId);
 
   const isAdmin = roles.includes("admin") || roles.includes("superadmin");
   const isSuperAdmin = roles.includes("superadmin");
   const isCreator = roles.includes("creator");
 
-  return { roles, loading, isAdmin, isSuperAdmin, isCreator, refetchRoles };
+  return { roles, loading: roleLoading, isAdmin, isSuperAdmin, isCreator, refetchRoles };
 };

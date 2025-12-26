@@ -48,10 +48,13 @@ const AdminDashboard = () => {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (!roleLoading && !isAdmin && !isSuperAdmin) {
+    // Only enforce role redirects once auth state is fully resolved.
+    if (authLoading || !user || roleLoading) return;
+
+    if (!isAdmin && !isSuperAdmin) {
       navigate("/dashboard");
     }
-  }, [isAdmin, isSuperAdmin, roleLoading, navigate]);
+  }, [user, authLoading, isAdmin, isSuperAdmin, roleLoading, navigate]);
 
   useEffect(() => {
     const fetchData = async () => {
