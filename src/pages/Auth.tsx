@@ -60,9 +60,20 @@ const Auth = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Redirect based on role after login
+  // Redirect based on role after login - but skip if handleSubmit is doing explicit navigation
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   useEffect(() => {
+    // Skip auto-redirect during form submission to prevent race conditions
+    if (isSubmitting) return;
+    
     if (user && !roleLoading) {
+      // Check for superadmin email first
+      if (user.email?.toLowerCase() === "awardsacia@gmail.com") {
+        navigate("/admin");
+        return;
+      }
+      
       if (isAdmin || isSuperAdmin) {
         navigate("/admin");
         return;
@@ -76,7 +87,7 @@ const Auth = () => {
 
       navigate("/dashboard");
     }
-  }, [user, isAdmin, isSuperAdmin, isCreator, roleLoading, navigate]);
+  }, [user, isAdmin, isSuperAdmin, isCreator, roleLoading, navigate, isSubmitting]);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -86,6 +97,7 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setIsSubmitting(true);
     setErrors({});
 
     try {
@@ -98,6 +110,7 @@ const Auth = () => {
           });
           setErrors(fieldErrors);
           setLoading(false);
+          setIsSubmitting(false);
           return;
         }
 
@@ -109,8 +122,6 @@ const Auth = () => {
         });
         if (error) throw error;
 
-        // Important: when email confirmation is enabled, session can be null here.
-        // In that case we can't insert into protected tables (RLS) yet.
         if (!data.session) {
           toast({
             title: "Confirm your email",
@@ -133,29 +144,35 @@ const Auth = () => {
         });
         setErrors(fieldErrors);
         setLoading(false);
+        setIsSubmitting(false);
         return;
       }
 
       const { error } = await signIn(formData.email, formData.password);
       if (error) throw error;
 
-      // If this is the superadmin email, ensure server-side role exists and redirect immediately.
+      // Handle superadmin separately - bootstrap role and redirect immediately
       if (formData.email.toLowerCase() === "awardsacia@gmail.com") {
-        await supabase.functions.invoke("bootstrap-superadmin");
-        await refetchRoles();
-        toast({ title: "Welcome back!" });
+        try {
+          await supabase.functions.invoke("bootstrap-superadmin");
+        } catch {
+          // Silent - role may already exist
+        }
+        toast({ title: "Welcome back, Admin!" });
         navigate("/admin");
         return;
       }
 
       toast({ title: "Welcome back!" });
-      // useEffect will handle redirect based on role
+      // Let useEffect handle redirect for non-superadmin users
+      setIsSubmitting(false);
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Something went wrong",
         variant: "destructive",
       });
+      setIsSubmitting(false);
     } finally {
       setLoading(false);
     }
