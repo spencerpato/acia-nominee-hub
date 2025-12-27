@@ -86,19 +86,16 @@ Deno.serve(async (req) => {
 
     console.log("Created payment record:", payment.id);
 
-    // Initiate Lipana STK Push
-    const lipanaResponse = await fetch("https://api.lipana.africa/api/v1/mpesa/stk-push", {
+    // Initiate Lipana STK Push using correct API endpoint
+    const lipanaResponse = await fetch("https://api.lipana.dev/v1/transactions/push-stk", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${lipanaSecretKey}`,
+        "x-api-key": lipanaSecretKey,
       },
       body: JSON.stringify({
-        phone_number: formattedPhone,
+        phone: formattedPhone.startsWith("+") ? formattedPhone : `+${formattedPhone}`,
         amount: 10,
-        account_reference: `ACIA-${payment.id.slice(0, 8)}`,
-        transaction_desc: `Vote for @${creator.alias}`,
-        callback_url: `${supabaseUrl}/functions/v1/lipana-webhook`,
       }),
     });
 
@@ -124,8 +121,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Update payment with checkout_id from Lipana
-    const checkoutId = lipanaData.data?.checkout_request_id || lipanaData.checkout_request_id;
+    // Update payment with checkout_id from Lipana response
+    const checkoutId = lipanaData.data?.checkoutRequestID || lipanaData.data?.transactionId || lipanaData.checkoutRequestID;
     
     await supabase
       .from("payments")
