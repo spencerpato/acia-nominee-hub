@@ -28,15 +28,17 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Extract checkout_request_id from various possible payload structures
+    // Extract transaction/checkout ID from Lipana webhook payload
+    // Lipana webhook format: { event: "payment.success", data: { transactionId, checkoutRequestID, ... } }
     const checkoutId = 
-      payload.checkout_request_id || 
-      payload.CheckoutRequestID || 
-      payload.data?.checkout_request_id ||
-      payload.data?.CheckoutRequestID;
+      payload.data?.checkoutRequestID ||
+      payload.data?.transactionId ||
+      payload.checkoutRequestID || 
+      payload.transactionId ||
+      payload.CheckoutRequestID;
 
     if (!checkoutId) {
-      console.error("No checkout_request_id in webhook payload");
+      console.error("No checkoutRequestID/transactionId in webhook payload:", JSON.stringify(payload));
       return new Response(
         JSON.stringify({ error: "Invalid webhook payload" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -68,17 +70,14 @@ Deno.serve(async (req) => {
     }
 
     // Determine payment status from Lipana callback
-    // Lipana typically sends result_code = 0 for success
-    const resultCode = 
-      payload.result_code ?? 
-      payload.ResultCode ?? 
-      payload.data?.result_code ??
-      payload.data?.ResultCode;
+    // Lipana webhook events: payment.success, payment.failed, payment.pending
+    const event = payload.event;
+    const status = payload.data?.status;
     
-    const isSuccess = resultCode === 0 || resultCode === "0" || payload.status === "success";
+    const isSuccess = event === "payment.success" || status === "success";
     const newStatus = isSuccess ? "success" : "failed";
 
-    console.log("Updating payment", payment.id, "to status:", newStatus, "resultCode:", resultCode);
+    console.log("Updating payment", payment.id, "to status:", newStatus, "event:", event);
 
     // Update payment status - this will trigger the vote increment if successful
     const { error: updateError } = await supabase
