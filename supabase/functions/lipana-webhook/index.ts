@@ -29,12 +29,14 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Extract transaction/checkout ID from Lipana webhook payload
-    // Lipana webhook format: { event: "payment.success", data: { transactionId, checkoutRequestID, ... } }
+    // Lipana sends transaction_id (snake_case) in data object
     const checkoutId = 
-      payload.data?.checkoutRequestID ||
+      payload.data?.transaction_id ||
       payload.data?.transactionId ||
+      payload.data?.checkoutRequestID ||
       payload.checkoutRequestID || 
       payload.transactionId ||
+      payload.transaction_id ||
       payload.CheckoutRequestID;
 
     if (!checkoutId) {
