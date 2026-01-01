@@ -133,6 +133,7 @@ export type Database = {
           phone_number: string
           reference: string | null
           updated_at: string
+          votes_expected: number | null
         }
         Insert: {
           amount?: number
@@ -145,6 +146,7 @@ export type Database = {
           phone_number: string
           reference?: string | null
           updated_at?: string
+          votes_expected?: number | null
         }
         Update: {
           amount?: number
@@ -157,6 +159,7 @@ export type Database = {
           phone_number?: string
           reference?: string | null
           updated_at?: string
+          votes_expected?: number | null
         }
         Relationships: [
           {

@@ -8,6 +8,8 @@ const corsHeaders = {
 interface PaymentRequest {
   creator_id: string;
   phone_number: string;
+  amount?: number;
+  votes_expected?: number;
 }
 
 Deno.serve(async (req) => {
@@ -29,7 +31,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { creator_id, phone_number }: PaymentRequest = await req.json();
+    const { creator_id, phone_number, amount = 10, votes_expected = 1 }: PaymentRequest = await req.json();
 
     // Validate input
     if (!creator_id || !phone_number) {
@@ -38,6 +40,11 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Validate votes and amount consistency
+    const calculatedAmount = votes_expected * 10;
+    const finalAmount = Math.max(10, amount);
+    const finalVotes = Math.floor(finalAmount / 10);
 
     // Format phone number (remove leading 0, add 254 if needed)
     let formattedPhone = phone_number.replace(/\s+/g, "").replace(/^0/, "");
@@ -64,13 +71,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create payment record first
+    // Create payment record with votes_expected
     const { data: payment, error: paymentError } = await supabase
       .from("payments")
       .insert({
         creator_id,
         phone_number: formattedPhone,
-        amount: 10,
+        amount: finalAmount,
+        votes_expected: finalVotes,
         payment_status: "pending",
       })
       .select()
@@ -84,7 +92,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Created payment record:", payment.id);
+    console.log("Created payment record:", payment.id, "amount:", finalAmount, "votes:", finalVotes);
 
     // Initiate Lipana STK Push using correct API endpoint
     const lipanaResponse = await fetch("https://api.lipana.dev/v1/transactions/push-stk", {
@@ -95,7 +103,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         phone: formattedPhone.startsWith("+") ? formattedPhone : `+${formattedPhone}`,
-        amount: 10,
+        amount: finalAmount,
       }),
     });
 
