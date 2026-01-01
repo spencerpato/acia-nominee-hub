@@ -91,12 +91,8 @@ const VoteModal = ({
       attempts++;
       
       try {
-        const { data, error } = await supabase.functions.invoke("check-payment-status", {
-          body: null,
-          method: "GET",
-        });
-
-        // Use fetch directly for GET with query params
+        console.log(`Polling attempt ${attempts} for payment ${paymentId}`);
+        
         const response = await fetch(
           `https://qprtljmxfulproevgydc.supabase.co/functions/v1/check-payment-status?payment_id=${paymentId}`,
           {
@@ -107,7 +103,13 @@ const VoteModal = ({
           }
         );
 
+        if (!response.ok) {
+          console.error("Poll response not ok:", response.status);
+          return;
+        }
+
         const result = await response.json();
+        console.log("Poll result:", result);
 
         if (result.status === "success") {
           clearInterval(pollingRef.current!);
@@ -129,6 +131,7 @@ const VoteModal = ({
           setPaymentState("failed");
           setErrorMessage(result.reason === "timeout" ? "Payment timed out" : "Payment was not completed");
         }
+        // If status is "pending", continue polling
       } catch (error) {
         console.error("Polling error:", error);
       }
