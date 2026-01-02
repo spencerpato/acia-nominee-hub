@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Heart, Trophy, Star } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Heart, Trophy, Star, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -75,20 +76,30 @@ const NomineeCard = ({
               #{rank}
             </div>
 
-            {/* Avatar */}
-            <div className="relative mb-3 mt-2">
+            {/* View Profile Link */}
+            <Link 
+              to={`/nominee/${id}`}
+              className="absolute top-2 right-2 p-1.5 rounded-full bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+
+            {/* Avatar - Clickable */}
+            <Link to={`/nominee/${id}`} className="relative mb-3 mt-2 cursor-pointer">
               <Avatar className="h-16 w-16 md:h-24 md:w-24 border-4 border-secondary/20 group-hover:border-secondary transition-colors">
                 <AvatarImage src={profilePhotoUrl} alt={fullName} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-lg md:text-xl font-serif">
                   {getInitials(fullName)}
                 </AvatarFallback>
               </Avatar>
-            </div>
+            </Link>
 
-            {/* Info */}
-            <h3 className="font-serif text-sm md:text-lg font-semibold text-foreground mb-1 line-clamp-1">
-              {fullName}
-            </h3>
+            {/* Info - Clickable */}
+            <Link to={`/nominee/${id}`} className="hover:opacity-80 transition-opacity">
+              <h3 className="font-serif text-sm md:text-lg font-semibold text-foreground mb-1 line-clamp-1">
+                {fullName}
+              </h3>
+            </Link>
             <p className="text-secondary font-medium text-xs md:text-sm mb-2">@{alias}</p>
             <Badge variant="secondary" className="mb-3 text-xs">
               {category}
@@ -104,7 +115,11 @@ const NomineeCard = ({
 
             {/* Vote Button */}
             <Button
-              onClick={() => setIsVoteModalOpen(true)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsVoteModalOpen(true);
+              }}
               className="w-full btn-gold text-xs md:text-sm"
               size="sm"
             >
