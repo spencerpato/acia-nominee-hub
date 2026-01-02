@@ -68,36 +68,36 @@ const NomineeCard = ({
       <Card className="group relative overflow-hidden card-hover bg-card border-border">
         {getRankBadge(rank)}
         
-        <CardContent className="p-6">
+        <CardContent className="p-4 md:p-6">
           <div className="flex flex-col items-center text-center">
+            {/* Rank Badge */}
+            <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full">
+              #{rank}
+            </div>
+
             {/* Avatar */}
-            <div className="relative mb-4">
-              <Avatar className="h-24 w-24 border-4 border-secondary/20 group-hover:border-secondary transition-colors">
+            <div className="relative mb-3 mt-2">
+              <Avatar className="h-16 w-16 md:h-24 md:w-24 border-4 border-secondary/20 group-hover:border-secondary transition-colors">
                 <AvatarImage src={profilePhotoUrl} alt={fullName} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xl font-serif">
+                <AvatarFallback className="bg-primary text-primary-foreground text-lg md:text-xl font-serif">
                   {getInitials(fullName)}
                 </AvatarFallback>
               </Avatar>
-              {rank <= 3 && (
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-                  #{rank}
-                </div>
-              )}
             </div>
 
             {/* Info */}
-            <h3 className="font-serif text-lg font-semibold text-foreground mb-1">
+            <h3 className="font-serif text-sm md:text-lg font-semibold text-foreground mb-1 line-clamp-1">
               {fullName}
             </h3>
-            <p className="text-secondary font-medium text-sm mb-2">@{alias}</p>
-            <Badge variant="secondary" className="mb-4">
+            <p className="text-secondary font-medium text-xs md:text-sm mb-2">@{alias}</p>
+            <Badge variant="secondary" className="mb-3 text-xs">
               {category}
             </Badge>
 
             {/* Vote Count */}
-            <div className="flex items-center gap-2 mb-4 text-muted-foreground">
-              <Heart className="h-4 w-4 text-destructive" />
-              <span className="text-sm font-medium">
+            <div className="flex items-center gap-2 mb-3 text-muted-foreground">
+              <Heart className="h-3 w-3 md:h-4 md:w-4 text-destructive" />
+              <span className="text-xs md:text-sm font-medium">
                 {voteCount.toLocaleString()} votes
               </span>
             </div>
@@ -105,10 +105,16 @@ const NomineeCard = ({
             {/* Vote Button */}
             <Button
               onClick={() => setIsVoteModalOpen(true)}
-              className="w-full btn-gold"
+              className="w-full btn-gold text-xs md:text-sm"
+              size="sm"
             >
-              Support @{alias}
+              Support
             </Button>
+
+            {/* Voting Notice */}
+            <p className="text-[10px] md:text-xs text-muted-foreground mt-2 leading-tight">
+              Support with multiple votes in the vote window
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -38,7 +38,7 @@ const Nominees = () => {
           </div>
 
           {creators && creators.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {creators.map((creator, index) => (
                 <NomineeCard
                   key={creator.id}
@@ -47,7 +47,7 @@ const Nominees = () => {
                   alias={creator.alias}
                   category={creator.category?.name || "Uncategorized"}
                   profilePhotoUrl={creator.profile_photo_url || undefined}
-                  voteCount={creator.vote_count}
+                  voteCount={creator.vote_count ?? 0}
                   rank={index + 1}
                   onVoteSuccess={() => refetch()}
                 />

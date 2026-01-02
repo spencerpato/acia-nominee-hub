@@ -14,11 +14,10 @@ import { useCreators } from "@/hooks/useCreators";
 const Index = () => {
   const { data: creators, refetch: refetchCreators } = useCreators();
   
-  // Randomly select up to 4 nominees on each page load
-  const randomNominees = useMemo(() => {
+  // Get top 4 nominees by votes (already sorted by useCreators)
+  const topNominees = useMemo(() => {
     if (!creators || creators.length === 0) return [];
-    const shuffled = [...creators].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 4);
+    return creators.slice(0, 4);
   }, [creators]);
 
   return (
@@ -39,9 +38,9 @@ const Index = () => {
               </p>
             </div>
 
-            {randomNominees.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-10">
-                {randomNominees.map((creator, index) => (
+            {topNominees.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
+                {topNominees.map((creator, index) => (
                   <NomineeCard
                     key={creator.id}
                     id={creator.id}
@@ -49,7 +48,7 @@ const Index = () => {
                     alias={creator.alias}
                     category={creator.category?.name || "Uncategorized"}
                     profilePhotoUrl={creator.profile_photo_url || undefined}
-                    voteCount={creator.vote_count}
+                    voteCount={creator.vote_count ?? 0}
                     rank={index + 1}
                     onVoteSuccess={() => refetchCreators()}
                   />
