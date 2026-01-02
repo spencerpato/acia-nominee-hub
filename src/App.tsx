@@ -7,6 +7,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Nominees from "./pages/Nominees";
+import NomineeProfile from "./pages/NomineeProfile";
 import CreatorRegistration from "./pages/CreatorRegistration";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/nominees" element={<Nominees />} />
+          <Route path="/nominee/:id" element={<NomineeProfile />} />
           <Route path="/creator/register" element={<CreatorRegistration />} />
           <Route path="/dashboard" element={<CreatorDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
