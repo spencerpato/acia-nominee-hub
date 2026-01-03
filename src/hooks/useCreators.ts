@@ -16,6 +16,11 @@ export interface Creator {
   vote_count: number;
   created_at: string;
   updated_at: string;
+  instagram_url: string | null;
+  twitter_url: string | null;
+  youtube_url: string | null;
+  tiktok_url: string | null;
+  website_url: string | null;
   category?: {
     id: string;
     name: string;
