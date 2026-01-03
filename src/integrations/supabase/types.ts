@@ -44,13 +44,18 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          instagram_url: string | null
           is_active: boolean | null
           is_approved: boolean | null
           phone: string | null
           profile_photo_url: string | null
+          tiktok_url: string | null
+          twitter_url: string | null
           updated_at: string
           user_id: string
           vote_count: number | null
+          website_url: string | null
+          youtube_url: string | null
         }
         Insert: {
           alias: string
@@ -60,13 +65,18 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          instagram_url?: string | null
           is_active?: boolean | null
           is_approved?: boolean | null
           phone?: string | null
           profile_photo_url?: string | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
           user_id: string
           vote_count?: number | null
+          website_url?: string | null
+          youtube_url?: string | null
         }
         Update: {
           alias?: string
@@ -76,13 +86,18 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          instagram_url?: string | null
           is_active?: boolean | null
           is_approved?: boolean | null
           phone?: string | null
           profile_photo_url?: string | null
+          tiktok_url?: string | null
+          twitter_url?: string | null
           updated_at?: string
           user_id?: string
           vote_count?: number | null
+          website_url?: string | null
+          youtube_url?: string | null
         }
         Relationships: [
           {

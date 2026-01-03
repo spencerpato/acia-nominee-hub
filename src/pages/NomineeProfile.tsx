@@ -18,7 +18,12 @@ import {
   ArrowLeft,
   TrendingUp,
   Award,
-  Users
+  Users,
+  Instagram,
+  Twitter,
+  Youtube,
+  Globe,
+  Music
 } from "lucide-react";
 import { toast } from "sonner";
 import { Creator } from "@/hooks/useCreators";
@@ -265,6 +270,72 @@ const NomineeProfile = () => {
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {creator.bio}
                 </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Social Links */}
+          {(creator.instagram_url || creator.twitter_url || creator.youtube_url || creator.tiktok_url || creator.website_url) && (
+            <Card className="mb-4 border-0 shadow-md">
+              <CardContent className="p-6">
+                <h3 className="font-serif font-semibold text-foreground mb-4">Connect</h3>
+                <div className="flex flex-wrap gap-3">
+                  {creator.instagram_url && (
+                    <a
+                      href={creator.instagram_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 transition-opacity"
+                    >
+                      <Instagram className="h-4 w-4" />
+                      <span className="text-sm font-medium">Instagram</span>
+                    </a>
+                  )}
+                  {creator.twitter_url && (
+                    <a
+                      href={creator.twitter_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500 text-white hover:opacity-90 transition-opacity"
+                    >
+                      <Twitter className="h-4 w-4" />
+                      <span className="text-sm font-medium">Twitter</span>
+                    </a>
+                  )}
+                  {creator.youtube_url && (
+                    <a
+                      href={creator.youtube_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500 text-white hover:opacity-90 transition-opacity"
+                    >
+                      <Youtube className="h-4 w-4" />
+                      <span className="text-sm font-medium">YouTube</span>
+                    </a>
+                  )}
+                  {creator.tiktok_url && (
+                    <a
+                      href={creator.tiktok_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background hover:opacity-90 transition-opacity"
+                    >
+                      <Music className="h-4 w-4" />
+                      <span className="text-sm font-medium">TikTok</span>
+                    </a>
+                  )}
+                  {creator.website_url && (
+                    <a
+                      href={creator.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:opacity-90 transition-opacity"
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span className="text-sm font-medium">Website</span>
+                    </a>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
