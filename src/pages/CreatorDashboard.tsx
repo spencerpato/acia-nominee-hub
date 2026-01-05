@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Camera, Loader2, Save, LogOut, Trophy, TrendingUp, Share2, Copy, Instagram, Twitter, Youtube, Globe, Music } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import { 
+  Menu, Bell, Trophy, Banknote, Share2, Copy, Upload, 
+  LayoutGrid, BarChart3, Lightbulb, User, TrendingUp,
+  Loader2
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useUserRole } from "@/hooks/useAuth";
 import { useCategories, useCreators } from "@/hooks/useCreators";
@@ -36,6 +35,7 @@ interface CreatorProfile {
 
 const CreatorDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin, isSuperAdmin, loading: roleLoading } = useUserRole(user?.id);
@@ -43,16 +43,19 @@ const CreatorDashboard = () => {
   const { data: allCreators } = useCreators();
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<CreatorProfile | null>(null);
 
   // Calculate rank
   const rank = profile && allCreators 
     ? allCreators.findIndex(c => c.id === profile.id) + 1 
     : 0;
+  const totalNominees = allCreators?.length || 0;
 
-  const votingLink = profile ? `${window.location.origin}/nominees/${profile.id}` : "";
+  // Calculate earnings (votes × KES 6)
+  const earnings = (profile?.vote_count || 0) * 6;
+
+  const votingLink = profile ? `acia.awards/v/${profile.alias}` : "";
+  const fullVotingLink = profile ? `${window.location.origin}/nominee/${profile.id}` : "";
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -103,76 +106,30 @@ const CreatorDashboard = () => {
     if (user) fetchProfile();
   }, [user, toast]);
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user || !profile) return;
-
-    setUploading(true);
-    const fileExt = file.name.split(".").pop();
-    const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("profile-photos")
-      .upload(filePath, file);
-
-    if (uploadError) {
-      toast({ title: "Error", description: "Failed to upload photo", variant: "destructive" });
-      setUploading(false);
-      return;
-    }
-
-    const { data: urlData } = supabase.storage.from("profile-photos").getPublicUrl(filePath);
-    
-    const { error: updateError } = await supabase
-      .from("creators")
-      .update({ profile_photo_url: urlData.publicUrl })
-      .eq("id", profile.id);
-
-    if (updateError) {
-      toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
-    } else {
-      setProfile({ ...profile, profile_photo_url: urlData.publicUrl });
-      toast({ title: "Success", description: "Photo uploaded!" });
-    }
-    setUploading(false);
+  const copyVotingLink = () => {
+    navigator.clipboard.writeText(fullVotingLink);
+    toast({ title: "Copied!", description: "Voting link copied to clipboard" });
   };
 
-  const handleSave = async () => {
-    if (!profile) return;
-    setSaving(true);
-
-    const { error } = await supabase
-      .from("creators")
-      .update({
-        full_name: profile.full_name,
-        alias: profile.alias,
-        phone: profile.phone || null,
-        bio: profile.bio || null,
-        category_id: profile.category_id || null,
-        instagram_url: profile.instagram_url || null,
-        twitter_url: profile.twitter_url || null,
-        youtube_url: profile.youtube_url || null,
-        tiktok_url: profile.tiktok_url || null,
-        website_url: profile.website_url || null,
-      })
-      .eq("id", profile.id);
-
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+  const shareCampaign = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Vote for ${profile?.full_name} - ACIA`,
+          text: `Support ${profile?.alias} in the African Creator Impact Awards!`,
+          url: fullVotingLink,
+        });
+      } catch (err) {
+        copyVotingLink();
+      }
     } else {
-      toast({ title: "Success", description: "Profile updated!" });
+      copyVotingLink();
     }
-    setSaving(false);
   };
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
-  };
-
-  const copyVotingLink = () => {
-    navigator.clipboard.writeText(votingLink);
-    toast({ title: "Copied!", description: "Voting link copied to clipboard" });
   };
 
   if (authLoading || loading || roleLoading) {
@@ -185,269 +142,248 @@ const CreatorDashboard = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex flex-col bg-muted">
-        <Navbar />
-        <main className="flex-1 flex items-center justify-center">
-          <Card className="max-w-md">
-            <CardHeader>
-              <CardTitle>No Nominee Profile</CardTitle>
-              <CardDescription>Complete your nominee profile to appear on the nominees list.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => navigate("/creator/register")} className="btn-gold">
-                Complete Registration
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6 text-center">
+            <h2 className="font-serif text-2xl font-bold mb-2">No Nominee Profile</h2>
+            <p className="text-muted-foreground mb-4">Complete your registration to appear on the nominees list.</p>
+            <Button onClick={() => navigate("/creator/register")} className="btn-gold">
+              Complete Registration
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   const categoryName = categories?.find(c => c.id === profile.category_id)?.name || "Uncategorized";
 
+  // Recent activity mock data
+  const recentActivity = [
+    {
+      icon: TrendingUp,
+      title: "Vote Surge!",
+      description: "You received new votes. Keep sharing!",
+      time: "Recently",
+      color: "text-blue-500"
+    },
+    {
+      icon: Trophy,
+      title: "Rank Update",
+      description: `You are currently ranked #${rank} in ${categoryName}.`,
+      time: "Today",
+      color: "text-secondary"
+    }
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col bg-muted">
-      <Navbar />
-      <main className="flex-1 py-8">
-        <div className="container max-w-6xl mx-auto px-4">
-          {/* Header Section */}
-          <div className="bg-gradient-navy rounded-2xl p-6 md:p-8 mb-8 text-primary-foreground">
-            <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-              {/* Profile Photo */}
-              <div className="relative group">
-                <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-secondary shadow-gold">
+    <div className="min-h-screen bg-muted pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-72">
+            <div className="flex flex-col gap-4 mt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Avatar className="h-12 w-12">
                   <AvatarImage src={profile.profile_photo_url} />
-                  <AvatarFallback className="text-4xl bg-secondary text-secondary-foreground">
+                  <AvatarFallback className="bg-secondary text-secondary-foreground">
                     {profile.full_name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <label className="absolute bottom-1 right-1 p-2 bg-secondary rounded-full cursor-pointer hover:bg-secondary/80 transition-colors shadow-lg">
-                  {uploading ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-secondary-foreground" />
-                  ) : (
-                    <Camera className="h-5 w-5 text-secondary-foreground" />
-                  )}
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
-                </label>
-              </div>
-
-              {/* Profile Info */}
-              <div className="flex-1 text-center md:text-left">
-                <h1 className="font-serif text-3xl md:text-4xl font-bold mb-1">{profile.full_name}</h1>
-                <p className="text-secondary text-lg mb-2">@{profile.alias}</p>
-                <Badge className="bg-secondary/20 text-secondary border-secondary/30 mb-4">
-                  {categoryName}
-                </Badge>
-                
-                {/* Stats Row */}
-                <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-4">
-                  <div className="text-center">
-                    <p className="text-3xl font-bold text-secondary">{profile.vote_count}</p>
-                    <p className="text-sm text-primary-foreground/70">Total Votes</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-3xl font-bold text-secondary">#{rank || "-"}</p>
-                    <p className="text-sm text-primary-foreground/70">Current Rank</p>
-                  </div>
+                <div>
+                  <p className="font-semibold">{profile.full_name}</p>
+                  <p className="text-sm text-muted-foreground">@{profile.alias}</p>
                 </div>
               </div>
+              <Link to="/dashboard" className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                <LayoutGrid className="h-5 w-5" /> Dashboard
+              </Link>
+              <Link to="/leaderboard" className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                <BarChart3 className="h-5 w-5" /> Rankings
+              </Link>
+              <Link to="/dashboard/tips" className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                <Lightbulb className="h-5 w-5" /> Tips
+              </Link>
+              <Link to="/dashboard/profile" className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                <User className="h-5 w-5" /> Profile
+              </Link>
+              <hr className="my-2" />
+              <Button variant="ghost" onClick={handleSignOut} className="justify-start text-destructive">
+                Sign Out
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
 
-              {/* Actions */}
-              <div className="flex flex-col gap-3">
-                <Button variant="outline" onClick={handleSignOut} className="border-secondary/30 text-secondary hover:bg-secondary/10">
-                  <LogOut className="h-4 w-4 mr-2" /> Sign Out
-                </Button>
-                <Link to="/leaderboard">
-                  <Button variant="outline" className="w-full border-secondary/30 text-secondary hover:bg-secondary/10">
-                    <Trophy className="h-4 w-4 mr-2" /> Leaderboard
-                  </Button>
-                </Link>
+        <h1 className="font-serif text-lg font-bold">Dashboard</h1>
+
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
+        </Button>
+      </header>
+
+      <main className="container max-w-lg mx-auto px-4 py-6 space-y-4">
+        {/* Profile Card */}
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-primary/20 dark:to-primary/10 border-0 overflow-hidden">
+          <CardContent className="pt-6 pb-4 text-center">
+            <div className="relative inline-block mb-3">
+              <Avatar className="h-24 w-24 border-4 border-card shadow-lg">
+                <AvatarImage src={profile.profile_photo_url} />
+                <AvatarFallback className="text-3xl bg-secondary text-secondary-foreground">
+                  {profile.full_name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <Badge className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-xs px-2">
+                #{rank}
+              </Badge>
+            </div>
+            <h2 className="font-serif text-xl font-bold text-foreground">{profile.full_name}</h2>
+            <p className="text-muted-foreground text-sm">@{profile.alias}</p>
+            <Badge variant="secondary" className="mt-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100">
+              <Trophy className="h-3 w-3 mr-1" />
+              Nominee: {categoryName}
+            </Badge>
+          </CardContent>
+        </Card>
+
+        {/* Total Votes Card */}
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Votes</p>
+                <p className="text-3xl font-bold text-blue-600">{profile.vote_count.toLocaleString()}</p>
+                <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                  <TrendingUp className="h-3 w-3" /> Active campaign
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <User className="h-6 w-6 text-blue-600" />
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Voting Link Section */}
-            <div className="mt-6 p-4 bg-primary/30 rounded-xl">
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <Share2 className="h-5 w-5 text-secondary shrink-0" />
-                <p className="text-sm text-primary-foreground/80">Share your voting link:</p>
-                <div className="flex-1 flex items-center gap-2 w-full sm:w-auto">
-                  <Input 
-                    value={votingLink} 
-                    readOnly 
-                    className="bg-primary/30 border-secondary/20 text-primary-foreground text-sm"
-                  />
-                  <Button size="icon" variant="secondary" onClick={copyVotingLink}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
+        {/* Rank & Earnings Row */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+                  <Trophy className="h-4 w-4 text-amber-600" />
+                </div>
+                <span className="text-xs text-green-600 font-medium">Active</span>
+              </div>
+              <p className="text-xs text-muted-foreground">Current Rank</p>
+              <p className="text-2xl font-bold">
+                #{rank} <span className="text-sm font-normal text-muted-foreground">/ {totalNominees}</span>
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                  <Banknote className="h-4 w-4 text-green-600" />
                 </div>
               </div>
+              <p className="text-xs text-muted-foreground">Est. Earnings</p>
+              <p className="text-2xl font-bold">
+                KES {earnings.toLocaleString()}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Share Voting Link */}
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Share2 className="h-5 w-5 text-blue-600" />
+              <p className="font-semibold">Share Voting Link</p>
             </div>
-          </div>
-
-          {/* Tabs Section */}
-          <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="social">Social Links</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="profile">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-secondary" />
-                    Profile Information
-                  </CardTitle>
-                  <CardDescription>Update your public profile details</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name</Label>
-                      <Input
-                        id="fullName"
-                        value={profile.full_name}
-                        onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="alias">Alias</Label>
-                      <Input
-                        id="alias"
-                        value={profile.alias}
-                        onChange={(e) => setProfile({ ...profile, alias: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" value={profile.email} disabled className="bg-muted" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        value={profile.phone}
-                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
-                      <Select
-                        value={profile.category_id}
-                        onValueChange={(v) => setProfile({ ...profile, category_id: v })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories?.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="bio">Bio</Label>
-                      <Textarea
-                        id="bio"
-                        value={profile.bio}
-                        onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                        rows={4}
-                        placeholder="Tell us about yourself..."
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="social">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Share2 className="h-5 w-5 text-secondary" />
-                    Social Links
-                  </CardTitle>
-                  <CardDescription>Connect your social media profiles</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="instagram" className="flex items-center gap-2">
-                        <Instagram className="h-4 w-4 text-pink-500" /> Instagram
-                      </Label>
-                      <Input
-                        id="instagram"
-                        placeholder="https://instagram.com/username"
-                        value={profile.instagram_url}
-                        onChange={(e) => setProfile({ ...profile, instagram_url: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="twitter" className="flex items-center gap-2">
-                        <Twitter className="h-4 w-4 text-sky-500" /> Twitter / X
-                      </Label>
-                      <Input
-                        id="twitter"
-                        placeholder="https://twitter.com/username"
-                        value={profile.twitter_url}
-                        onChange={(e) => setProfile({ ...profile, twitter_url: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="youtube" className="flex items-center gap-2">
-                        <Youtube className="h-4 w-4 text-red-500" /> YouTube
-                      </Label>
-                      <Input
-                        id="youtube"
-                        placeholder="https://youtube.com/@channel"
-                        value={profile.youtube_url}
-                        onChange={(e) => setProfile({ ...profile, youtube_url: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="tiktok" className="flex items-center gap-2">
-                        <Music className="h-4 w-4" /> TikTok
-                      </Label>
-                      <Input
-                        id="tiktok"
-                        placeholder="https://tiktok.com/@username"
-                        value={profile.tiktok_url}
-                        onChange={(e) => setProfile({ ...profile, tiktok_url: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="website" className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-secondary" /> Website
-                      </Label>
-                      <Input
-                        id="website"
-                        placeholder="https://yourwebsite.com"
-                        value={profile.website_url}
-                        onChange={(e) => setProfile({ ...profile, website_url: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-
-          {/* Save Button */}
-          <div className="mt-6 flex justify-end">
-            <Button onClick={handleSave} className="btn-gold" disabled={saving}>
-              {saving ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</>
-              ) : (
-                <><Save className="h-4 w-4 mr-2" />Save Changes</>
-              )}
+            <div className="flex items-center gap-2 mb-3">
+              <Input 
+                value={votingLink} 
+                readOnly 
+                className="text-sm bg-muted"
+              />
+              <Button variant="ghost" size="icon" onClick={copyVotingLink}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button className="w-full btn-gold" onClick={shareCampaign}>
+              <Upload className="h-4 w-4 mr-2" /> Share Campaign
             </Button>
-          </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity */}
+        <div className="space-y-3">
+          <h3 className="font-serif text-lg font-bold">Recent Activity</h3>
+          {recentActivity.map((activity, index) => (
+            <Card key={index}>
+              <CardContent className="py-3">
+                <div className="flex items-start gap-3">
+                  <div className={`h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0 ${activity.color}`}>
+                    <activity.icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-sm">{activity.title}</p>
+                      <span className="text-xs text-muted-foreground">{activity.time}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{activity.description}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </main>
-      <Footer />
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
+        <div className="max-w-lg mx-auto flex items-center justify-around py-2">
+          <Link 
+            to="/dashboard" 
+            className={`flex flex-col items-center gap-1 p-2 ${location.pathname === '/dashboard' ? 'text-blue-600' : 'text-muted-foreground'}`}
+          >
+            <LayoutGrid className="h-5 w-5" />
+            <span className="text-xs">Home</span>
+          </Link>
+          <Link 
+            to="/leaderboard" 
+            className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-foreground"
+          >
+            <BarChart3 className="h-5 w-5" />
+            <span className="text-xs">Rankings</span>
+          </Link>
+          <Link 
+            to="/dashboard/tips" 
+            className={`flex flex-col items-center gap-1 p-2 ${location.pathname === '/dashboard/tips' ? 'text-blue-600' : 'text-muted-foreground'}`}
+          >
+            <div className="h-12 w-12 -mt-6 rounded-full bg-secondary flex items-center justify-center shadow-gold">
+              <Lightbulb className="h-6 w-6 text-secondary-foreground" />
+            </div>
+            <span className="text-xs">Tips</span>
+          </Link>
+          <Link 
+            to="/dashboard/profile" 
+            className={`flex flex-col items-center gap-1 p-2 ${location.pathname === '/dashboard/profile' ? 'text-blue-600' : 'text-muted-foreground'}`}
+          >
+            <User className="h-5 w-5" />
+            <span className="text-xs">Profile</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   );
 };
