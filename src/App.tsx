@@ -12,6 +12,7 @@ import CreatorRegistration from "./pages/CreatorRegistration";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import CreatorTips from "./pages/CreatorTips";
 import CreatorProfile from "./pages/CreatorProfile";
+import DashboardRankings from "./pages/DashboardRankings";
 import AdminDashboard from "./pages/AdminDashboard";
 import Leaderboard from "./pages/Leaderboard";
 import Gallery from "./pages/Gallery";
@@ -35,10 +36,12 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/nominees" element={<Nominees />} />
           <Route path="/nominee/:id" element={<NomineeProfile />} />
+          <Route path="/nominees/:id" element={<NomineeProfile />} />
           <Route path="/creator/register" element={<CreatorRegistration />} />
           <Route path="/dashboard" element={<CreatorDashboard />} />
           <Route path="/dashboard/tips" element={<CreatorTips />} />
           <Route path="/dashboard/profile" element={<CreatorProfile />} />
+          <Route path="/dashboard/rankings" element={<DashboardRankings />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/gallery" element={<Gallery />} />

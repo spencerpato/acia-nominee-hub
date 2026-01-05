@@ -137,12 +137,23 @@ const GalleryCarousel = () => {
                 alt={item.title || "Gallery image"}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              {item.title && (
-                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <p className="text-white font-medium text-sm">{item.title}</p>
-                </div>
-              )}
+              {/* Always visible overlay with gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              {/* Title & Description overlay - always visible at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                {item.title && (
+                  <h3 className="text-white font-semibold text-base mb-1 drop-shadow-md">
+                    {item.title}
+                  </h3>
+                )}
+                {item.description && (
+                  <p className="text-white/80 text-sm line-clamp-2 drop-shadow-sm">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+              {/* Hover effect overlay */}
+              <div className="absolute inset-0 bg-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Link>
           ))}
         </div>
