@@ -10,6 +10,8 @@ import Nominees from "./pages/Nominees";
 import NomineeProfile from "./pages/NomineeProfile";
 import CreatorRegistration from "./pages/CreatorRegistration";
 import CreatorDashboard from "./pages/CreatorDashboard";
+import CreatorTips from "./pages/CreatorTips";
+import CreatorProfile from "./pages/CreatorProfile";
 import AdminDashboard from "./pages/AdminDashboard";
 import Leaderboard from "./pages/Leaderboard";
 import Gallery from "./pages/Gallery";
@@ -35,6 +37,8 @@ const App = () => (
           <Route path="/nominee/:id" element={<NomineeProfile />} />
           <Route path="/creator/register" element={<CreatorRegistration />} />
           <Route path="/dashboard" element={<CreatorDashboard />} />
+          <Route path="/dashboard/tips" element={<CreatorTips />} />
+          <Route path="/dashboard/profile" element={<CreatorProfile />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/gallery" element={<Gallery />} />
