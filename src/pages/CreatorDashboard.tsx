@@ -360,7 +360,7 @@ const CreatorDashboard = () => {
             <span className="text-xs">Home</span>
           </Link>
           <Link 
-            to="/leaderboard" 
+            to="/dashboard/rankings" 
             className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-foreground"
           >
             <BarChart3 className="h-5 w-5" />
