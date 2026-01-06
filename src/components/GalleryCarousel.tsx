@@ -74,8 +74,8 @@ const GalleryCarousel = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="animate-pulse flex space-x-4 overflow-hidden">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="min-w-[280px] h-56 bg-muted rounded-lg" />
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="min-w-[220px] h-44 bg-muted rounded-lg" />
             ))}
           </div>
         </div>
@@ -130,7 +130,7 @@ const GalleryCarousel = () => {
             <Link
               key={item.id}
               to="/gallery"
-              className="group relative min-w-[280px] md:min-w-[320px] h-56 md:h-64 rounded-xl overflow-hidden flex-shrink-0 snap-start"
+              className="group relative min-w-[220px] md:min-w-[260px] h-44 md:h-52 rounded-xl overflow-hidden flex-shrink-0 snap-start"
             >
               <img
                 src={item.image_url}
@@ -138,16 +138,16 @@ const GalleryCarousel = () => {
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
               {/* Always visible overlay with gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
               {/* Title & Description overlay - always visible at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 p-4">
+              <div className="absolute bottom-0 left-0 right-0 p-3">
                 {item.title && (
-                  <h3 className="text-white font-semibold text-base mb-1 drop-shadow-md">
+                  <h3 className="text-white font-semibold text-sm mb-0.5 drop-shadow-md line-clamp-1">
                     {item.title}
                   </h3>
                 )}
                 {item.description && (
-                  <p className="text-white/80 text-sm line-clamp-2 drop-shadow-sm">
+                  <p className="text-white/80 text-xs line-clamp-2 drop-shadow-sm">
                     {item.description}
                   </p>
                 )}
