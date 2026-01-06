@@ -45,10 +45,12 @@ const HeroSection = () => {
             <Button
               asChild
               size="lg"
-              variant="outline"
-              className="text-lg px-8 border-white/30 text-white hover:bg-white/10 hover:text-white"
+              className="text-lg px-8 bg-white text-primary hover:bg-white/90 font-semibold shadow-lg"
             >
-              <Link to="/auth?mode=signup">Register as Creator</Link>
+              <Link to="/auth?mode=signup">
+                Become a Nominee
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
           </div>
 
