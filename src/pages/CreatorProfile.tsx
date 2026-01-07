@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useCategories } from "@/hooks/useCreators";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 interface CreatorProfile {
   id: string;
@@ -91,33 +92,32 @@ const CreatorProfilePage = () => {
     if (!file || !user || !profile) return;
 
     setUploading(true);
-    const fileExt = file.name.split(".").pop();
-    const filePath = `${user.id}/${Date.now()}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("profile-photos")
-      .upload(filePath, file);
+    try {
+      // Upload to Cloudinary
+      const result = await uploadToCloudinary(file, "acia/profile-photos");
+      
+      // Update profile in Supabase with Cloudinary URL
+      const { error: updateError } = await supabase
+        .from("creators")
+        .update({ profile_photo_url: result.secure_url })
+        .eq("id", profile.id);
 
-    if (uploadError) {
-      toast({ title: "Error", description: "Failed to upload photo", variant: "destructive" });
-      setUploading(false);
-      return;
-    }
-
-    const { data: urlData } = supabase.storage.from("profile-photos").getPublicUrl(filePath);
-    
-    const { error: updateError } = await supabase
-      .from("creators")
-      .update({ profile_photo_url: urlData.publicUrl })
-      .eq("id", profile.id);
-
-    if (updateError) {
-      toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
-    } else {
-      setProfile({ ...profile, profile_photo_url: urlData.publicUrl });
+      if (updateError) {
+        throw updateError;
+      }
+      
+      setProfile({ ...profile, profile_photo_url: result.secure_url });
       toast({ title: "Success", description: "Photo uploaded!" });
+    } catch (err: any) {
+      toast({ 
+        title: "Error", 
+        description: err.message || "Failed to upload photo", 
+        variant: "destructive" 
+      });
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   const handleSave = async () => {

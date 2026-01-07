@@ -42,10 +42,18 @@ The **African Creator Impact Awards (ACIA)** is a full-stack web application des
 | **Styling** | Tailwind CSS, shadcn/ui components |
 | **State Management** | TanStack React Query |
 | **Routing** | React Router DOM v6 |
-| **Backend** | Supabase (PostgreSQL, Auth, Edge Functions, Storage) |
+| **Backend** | Supabase (PostgreSQL, Auth, Edge Functions) |
+| **Media Storage** | Cloudinary CDN (unsigned uploads) |
 | **Payments** | Lipana M-Pesa STK Push |
 | **Validation** | Zod |
 | **Icons** | Lucide React |
+
+### Cloudinary Configuration
+All image uploads (profile photos, gallery images) are handled via Cloudinary:
+- **Cloud Name**: `dhsihufoq`
+- **Upload Preset**: `Nominees` (unsigned)
+- Images are automatically optimized for performance with lazy loading
+- URLs stored in Supabase database only (no blob storage in Supabase)
 
 ---
 
@@ -74,6 +82,7 @@ The **African Creator Impact Awards (ACIA)** is a full-stack web application des
 │   │       ├── client.ts     # Supabase client instance
 │   │       └── types.ts      # Auto-generated DB types
 │   ├── lib/
+│   │   ├── cloudinary.ts     # Cloudinary upload & optimization utilities
 │   │   └── utils.ts          # Utility functions (cn, etc.)
 │   ├── pages/                 # Route pages
 │   │   ├── Index.tsx         # Homepage

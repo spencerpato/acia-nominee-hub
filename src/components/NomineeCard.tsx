@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import VoteModal from "./VoteModal";
+import { getOptimizedUrl, isCloudinaryUrl } from "@/lib/cloudinary";
 
 interface NomineeCardProps {
   id: string;
@@ -64,6 +65,11 @@ const NomineeCard = ({
       .slice(0, 2);
   };
 
+  // Optimize profile photo URL if it's from Cloudinary
+  const optimizedPhotoUrl = profilePhotoUrl && isCloudinaryUrl(profilePhotoUrl)
+    ? getOptimizedUrl(profilePhotoUrl, { width: 200, height: 200, quality: "auto" })
+    : profilePhotoUrl;
+
   return (
     <>
       <Card className="group relative overflow-hidden card-hover bg-card border-border">
@@ -87,7 +93,7 @@ const NomineeCard = ({
             {/* Avatar - Clickable */}
             <Link to={`/nominee/${id}`} className="relative mb-3 mt-2 cursor-pointer">
               <Avatar className="h-16 w-16 md:h-24 md:w-24 border-4 border-secondary/20 group-hover:border-secondary transition-colors">
-                <AvatarImage src={profilePhotoUrl} alt={fullName} />
+                <AvatarImage src={optimizedPhotoUrl} alt={fullName} loading="lazy" />
                 <AvatarFallback className="bg-primary text-primary-foreground text-lg md:text-xl font-serif">
                   {getInitials(fullName)}
                 </AvatarFallback>

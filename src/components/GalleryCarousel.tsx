@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { getOptimizedUrl, isCloudinaryUrl } from "@/lib/cloudinary";
 
 interface GalleryImage {
   id: string;
@@ -126,36 +127,43 @@ const GalleryCarousel = () => {
           className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4 snap-x snap-mandatory"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {gallery.map((item) => (
-            <Link
-              key={item.id}
-              to="/gallery"
-              className="group relative min-w-[220px] md:min-w-[260px] h-44 md:h-52 rounded-xl overflow-hidden flex-shrink-0 snap-start"
-            >
-              <img
-                src={item.image_url}
-                alt={item.title || "Gallery image"}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              {/* Always visible overlay with gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              {/* Title & Description overlay - always visible at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 p-3">
-                {item.title && (
-                  <h3 className="text-white font-semibold text-sm mb-0.5 drop-shadow-md line-clamp-1">
-                    {item.title}
-                  </h3>
-                )}
-                {item.description && (
-                  <p className="text-white/80 text-xs line-clamp-2 drop-shadow-sm">
-                    {item.description}
-                  </p>
-                )}
-              </div>
-              {/* Hover effect overlay */}
-              <div className="absolute inset-0 bg-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </Link>
-          ))}
+          {gallery.map((item) => {
+            const optimizedUrl = isCloudinaryUrl(item.image_url)
+              ? getOptimizedUrl(item.image_url, { width: 400, height: 320, quality: "auto" })
+              : item.image_url;
+            
+            return (
+              <Link
+                key={item.id}
+                to="/gallery"
+                className="group relative min-w-[220px] md:min-w-[260px] h-44 md:h-52 rounded-xl overflow-hidden flex-shrink-0 snap-start"
+              >
+                <img
+                  src={optimizedUrl}
+                  alt={item.title || "Gallery image"}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                {/* Always visible overlay with gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                {/* Title & Description overlay - always visible at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  {item.title && (
+                    <h3 className="text-white font-semibold text-sm mb-0.5 drop-shadow-md line-clamp-1">
+                      {item.title}
+                    </h3>
+                  )}
+                  {item.description && (
+                    <p className="text-white/80 text-xs line-clamp-2 drop-shadow-sm">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+                {/* Hover effect overlay */}
+                <div className="absolute inset-0 bg-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </Link>
+            );
+          })}
         </div>
 
         {/* View Full Gallery */}
