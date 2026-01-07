@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCategories } from "@/hooks/useCreators";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { ImageCropperModal } from "@/components/ImageCropperModal";
 
 interface CreatorProfile {
   id: string;
@@ -44,7 +45,12 @@ const CreatorProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [profile, setProfile] = useState<CreatorProfile | null>(null);
+  
+  // Image cropper state
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -87,27 +93,44 @@ const CreatorProfilePage = () => {
     if (user) fetchProfile();
   }, [user, toast]);
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user || !profile) return;
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage(reader.result as string);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset input so same file can be selected again
+    e.target.value = "";
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!user || !profile) return;
 
     setUploading(true);
+    setUploadProgress(0);
 
     try {
-      // Upload to Cloudinary
-      const result = await uploadToCloudinary(file, "acia/profile-photos");
+      const result = await uploadToCloudinary(
+        croppedBlob, 
+        "acia/profile-photos",
+        (progress) => setUploadProgress(progress)
+      );
       
-      // Update profile in Supabase with Cloudinary URL
       const { error: updateError } = await supabase
         .from("creators")
         .update({ profile_photo_url: result.secure_url })
         .eq("id", profile.id);
 
-      if (updateError) {
-        throw updateError;
-      }
+      if (updateError) throw updateError;
       
       setProfile({ ...profile, profile_photo_url: result.secure_url });
+      setCropperOpen(false);
+      setSelectedImage(null);
       toast({ title: "Success", description: "Photo uploaded!" });
     } catch (err: any) {
       toast({ 
@@ -117,6 +140,7 @@ const CreatorProfilePage = () => {
       });
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -203,12 +227,29 @@ const CreatorProfilePage = () => {
                 ) : (
                   <Camera className="h-5 w-5 text-secondary-foreground" />
                 )}
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} disabled={uploading} />
               </label>
             </div>
             <p className="text-sm text-muted-foreground">Tap to change photo</p>
           </CardContent>
         </Card>
+
+        {/* Image Cropper Modal */}
+        <ImageCropperModal
+          open={cropperOpen}
+          onOpenChange={(open) => {
+            if (!uploading) {
+              setCropperOpen(open);
+              if (!open) setSelectedImage(null);
+            }
+          }}
+          imageSrc={selectedImage}
+          aspectRatio={1}
+          circularCrop
+          onCropComplete={handleCropComplete}
+          uploadProgress={uploadProgress}
+          isUploading={uploading}
+        />
 
         {/* Profile Tabs */}
         <Tabs defaultValue="basic" className="space-y-4">

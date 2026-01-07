@@ -12,11 +12,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, useUserRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { ImageCropperModal } from "@/components/ImageCropperModal";
+import { ImageMigrationTool } from "@/components/ImageMigrationTool";
 
 type Creator = Tables<"creators">;
 type Category = Tables<"categories">;
@@ -38,9 +41,13 @@ const AdminDashboard = () => {
   // Gallery form
   const [galleryDialogOpen, setGalleryDialogOpen] = useState(false);
   const [newGallery, setNewGallery] = useState({ title: "", description: "" });
-  const [galleryFile, setGalleryFile] = useState<File | null>(null);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [galleryUploadProgress, setGalleryUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Image cropper state
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -137,17 +144,32 @@ const AdminDashboard = () => {
   };
 
   // Gallery handlers
-  const handleAddGalleryImage = async () => {
-    if (!galleryFile) {
-      toast({ title: "Error", description: "Please select an image", variant: "destructive" });
-      return;
-    }
+  const handleGalleryFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage(reader.result as string);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset input so same file can be selected again
+    e.target.value = "";
+  };
 
+  const handleGalleryCropComplete = async (croppedBlob: Blob) => {
     setUploadingGallery(true);
+    setGalleryUploadProgress(0);
 
     try {
-      // Upload to Cloudinary
-      const result = await uploadToCloudinary(galleryFile, "acia/gallery");
+      // Upload to Cloudinary with progress
+      const result = await uploadToCloudinary(
+        croppedBlob, 
+        "acia/gallery",
+        (progress) => setGalleryUploadProgress(progress)
+      );
 
       // Save to Supabase with Cloudinary URL
       const { data, error } = await supabase
@@ -164,14 +186,15 @@ const AdminDashboard = () => {
 
       setGalleryItems([data, ...galleryItems]);
       setNewGallery({ title: "", description: "" });
-      setGalleryFile(null);
+      setCropperOpen(false);
+      setSelectedImage(null);
       setGalleryDialogOpen(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
       toast({ title: "Success", description: "Image added to gallery" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to upload image", variant: "destructive" });
     } finally {
       setUploadingGallery(false);
+      setGalleryUploadProgress(0);
     }
   };
 
@@ -289,6 +312,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="approved">Approved</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
             <TabsTrigger value="gallery">Gallery</TabsTrigger>
+            <TabsTrigger value="migration">Migration</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending">
@@ -488,16 +512,6 @@ const AdminDashboard = () => {
                     </DialogHeader>
                     <div className="space-y-4 mt-4">
                       <div>
-                        <Label htmlFor="galleryFile">Image</Label>
-                        <Input
-                          id="galleryFile"
-                          type="file"
-                          accept="image/*"
-                          ref={fileInputRef}
-                          onChange={(e) => setGalleryFile(e.target.files?.[0] || null)}
-                        />
-                      </div>
-                      <div>
                         <Label htmlFor="galleryTitle">Title (optional)</Label>
                         <Input
                           id="galleryTitle"
@@ -516,22 +530,37 @@ const AdminDashboard = () => {
                           rows={3}
                         />
                       </div>
-                      <Button
-                        onClick={handleAddGalleryImage}
-                        className="w-full btn-gold"
-                        disabled={uploadingGallery}
-                      >
-                        {uploadingGallery ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          "Upload Image"
-                        )}
-                      </Button>
+                      <div>
+                        <Label htmlFor="galleryFile">Select Image</Label>
+                        <Input
+                          id="galleryFile"
+                          type="file"
+                          accept="image/*"
+                          ref={fileInputRef}
+                          onChange={handleGalleryFileSelect}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Image will open in cropper after selection
+                        </p>
+                      </div>
                     </div>
                   </DialogContent>
+
+                  {/* Image Cropper Modal */}
+                  <ImageCropperModal
+                    open={cropperOpen}
+                    onOpenChange={(open) => {
+                      if (!uploadingGallery) {
+                        setCropperOpen(open);
+                        if (!open) setSelectedImage(null);
+                      }
+                    }}
+                    imageSrc={selectedImage}
+                    aspectRatio={16/9}
+                    onCropComplete={handleGalleryCropComplete}
+                    uploadProgress={galleryUploadProgress}
+                    isUploading={uploadingGallery}
+                  />
                 </Dialog>
               </CardHeader>
               <CardContent>
@@ -585,6 +614,10 @@ const AdminDashboard = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="migration">
+            <ImageMigrationTool />
           </TabsContent>
         </Tabs>
       </main>
