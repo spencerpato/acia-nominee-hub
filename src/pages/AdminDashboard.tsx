@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth, useUserRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 type Creator = Tables<"creators">;
 type Category = Tables<"categories">;
@@ -145,19 +146,14 @@ const AdminDashboard = () => {
     setUploadingGallery(true);
 
     try {
-      const fileExt = galleryFile.name.split(".").pop();
-      const filePath = `gallery/${Date.now()}.${fileExt}`;
+      // Upload to Cloudinary
+      const result = await uploadToCloudinary(galleryFile, "acia/gallery");
 
-      const { error: uploadError } = await supabase.storage.from("profile-photos").upload(filePath, galleryFile);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from("profile-photos").getPublicUrl(filePath);
-
+      // Save to Supabase with Cloudinary URL
       const { data, error } = await supabase
         .from("gallery")
         .insert({
-          image_url: urlData.publicUrl,
+          image_url: result.secure_url,
           title: newGallery.title || null,
           description: newGallery.description || null,
         })

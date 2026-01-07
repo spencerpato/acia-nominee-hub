@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { getOptimizedUrl, isCloudinaryUrl } from "@/lib/cloudinary";
 
 type GalleryItem = Tables<"gallery">;
 
@@ -66,24 +67,31 @@ const Gallery = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {items.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setSelectedImage(item)}
-                  className="group relative aspect-square overflow-hidden rounded-lg bg-muted hover:ring-2 hover:ring-secondary transition-all"
-                >
-                  <img
-                    src={item.image_url}
-                    alt={item.title || "Gallery image"}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  />
-                  {item.title && (
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                      <p className="text-white text-sm font-medium truncate">{item.title}</p>
-                    </div>
-                  )}
-                </button>
-              ))}
+              {items.map((item) => {
+                const thumbnailUrl = isCloudinaryUrl(item.image_url)
+                  ? getOptimizedUrl(item.image_url, { width: 400, height: 400, quality: "auto" })
+                  : item.image_url;
+                  
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setSelectedImage(item)}
+                    className="group relative aspect-square overflow-hidden rounded-lg bg-muted hover:ring-2 hover:ring-secondary transition-all"
+                  >
+                    <img
+                      src={thumbnailUrl}
+                      alt={item.title || "Gallery image"}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                    {item.title && (
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                        <p className="text-white text-sm font-medium truncate">{item.title}</p>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -94,7 +102,9 @@ const Gallery = () => {
           {selectedImage && (
             <div>
               <img
-                src={selectedImage.image_url}
+                src={isCloudinaryUrl(selectedImage.image_url)
+                  ? getOptimizedUrl(selectedImage.image_url, { width: 1200, quality: "auto" })
+                  : selectedImage.image_url}
                 alt={selectedImage.title || "Gallery image"}
                 className="w-full max-h-[80vh] object-contain"
               />
