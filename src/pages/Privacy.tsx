@@ -76,15 +76,50 @@ const Privacy = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">6. Cookies</h2>
+                <h2 className="text-xl font-semibold">6. Cookies & Tracking Technologies</h2>
                 <p>
-                  We use cookies and similar technologies to improve your experience, analyze
-                  traffic, and for security purposes.
+                  We use cookies and similar tracking technologies to improve your experience on 
+                  the ACIA platform. By continuing to use our website, you consent to the use of cookies 
+                  as described below:
+                </p>
+                <h3 className="text-lg font-medium mt-4">Types of Cookies We Use:</h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>
+                    <strong>Essential Cookies:</strong> Required for the platform to function properly, 
+                    including authentication, security, and session management.
+                  </li>
+                  <li>
+                    <strong>Analytics Cookies:</strong> Help us understand how visitors interact with 
+                    our platform, allowing us to improve performance and user experience.
+                  </li>
+                  <li>
+                    <strong>Functional Cookies:</strong> Remember your preferences and settings to 
+                    provide a personalized experience.
+                  </li>
+                </ul>
+                <h3 className="text-lg font-medium mt-4">Your Cookie Choices:</h3>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>You can control cookies through your browser settings.</li>
+                  <li>Disabling essential cookies may affect platform functionality.</li>
+                  <li>You may opt out of analytics cookies at any time.</li>
+                </ul>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  By using ACIA, you acknowledge and consent to our use of cookies in accordance 
+                  with this policy.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">7. Children's Privacy</h2>
+                <h2 className="text-xl font-semibold">7. Data Retention</h2>
+                <p>
+                  We retain your personal information only for as long as necessary to fulfill the 
+                  purposes outlined in this policy, unless a longer retention period is required by law. 
+                  Voting records may be retained for audit and verification purposes.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold">8. Children's Privacy</h2>
                 <p>
                   ACIA is not intended for users under 13 years of age. We do not knowingly collect
                   information from children.
@@ -92,21 +127,39 @@ const Privacy = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">8. Changes to This Policy</h2>
+                <h2 className="text-xl font-semibold">9. International Data Transfers</h2>
                 <p>
-                  We may update this policy periodically. We will notify you of significant changes
-                  via the platform or email.
+                  Your information may be transferred to and processed in countries other than your 
+                  own. We ensure appropriate safeguards are in place to protect your data in accordance 
+                  with applicable data protection laws.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">9. Contact Us</h2>
+                <h2 className="text-xl font-semibold">10. Changes to This Policy</h2>
+                <p>
+                  We may update this policy periodically. We will notify you of significant changes
+                  via the platform or email. Continued use of the platform after changes are posted 
+                  constitutes acceptance of the revised policy.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold">11. Contact Us</h2>
                 <p>
                   For privacy-related inquiries, contact us at{" "}
-                  <a href="mailto:privacy@aciaawards.com" className="text-secondary hover:underline">
-                    privacy@aciaawards.com
+                  <a href="mailto:awardsacia@gmail.com" className="text-secondary hover:underline">
+                    awardsacia@gmail.com
                   </a>
                   .
+                </p>
+              </section>
+
+              <section className="bg-muted/50 p-4 rounded-lg border">
+                <p className="text-sm text-muted-foreground italic">
+                  By using the African Creator Impact Awards platform, you acknowledge that you have 
+                  read and understood this Privacy Policy and consent to the collection, use, and 
+                  disclosure of your information as described herein.
                 </p>
               </section>
             </CardContent>
