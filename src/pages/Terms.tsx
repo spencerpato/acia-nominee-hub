@@ -81,7 +81,60 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">6. Payment & Payout Policy</h2>
+                <h2 className="text-xl font-semibold">6. Withdrawal Before Voting Ends</h2>
+                <p>
+                  Nominees may voluntarily withdraw from the awards at any time before the official 
+                  close of the voting period by submitting a formal request to{" "}
+                  <a href="mailto:awardsacia@gmail.com" className="text-secondary hover:underline">awardsacia@gmail.com</a>.
+                </p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>
+                    <strong>Forfeiture of Eligibility:</strong> Any nominee who withdraws before the end of the 
+                    voting period forfeits eligibility for all payouts, awards, and benefits, regardless of 
+                    the number of votes already received.
+                  </li>
+                  <li>
+                    <strong>Non-Refundable Votes:</strong> Votes cast before withdrawal are considered final 
+                    contributions made during an active campaign. These votes are not refundable and not payable 
+                    to the withdrawn nominee.
+                  </li>
+                  <li>Upon withdrawal, the nominee's profile will be removed from public listings.</li>
+                  <li>Withdrawn nominees may not be eligible for reinstatement in the same award cycle.</li>
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold">7. Withdrawal After Voting Ends</h2>
+                <p>
+                  Nominees who remain active until the voting period officially ends and complete the 
+                  verification process remain eligible for payouts and awards, even if they choose to 
+                  withdraw afterward.
+                </p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Eligibility for payouts is preserved for nominees who complete the full voting cycle.</li>
+                  <li>Post-voting withdrawal does not affect earned payouts or recognition.</li>
+                  <li>All payouts remain subject to verification and platform policies.</li>
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold">8. Payout Eligibility Conditions</h2>
+                <p>
+                  Payout eligibility is determined only after the following conditions are met:
+                </p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>The official voting period has closed.</li>
+                  <li>All votes have been verified and audited.</li>
+                  <li>Any suspected fraudulent activity has been reviewed and resolved.</li>
+                  <li>The nominee has completed any required verification steps.</li>
+                </ul>
+                <p className="mt-4 font-medium">
+                  No payouts are processed during the active voting period under any circumstances.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold">9. Payment & Payout Policy</h2>
                 <p>
                   All payouts to eligible nominees are processed only after the official voting period 
                   has concluded. Please note the following:
@@ -95,29 +148,25 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">7. No Early Payouts Policy</h2>
+                <h2 className="text-xl font-semibold">10. No Early Payouts Policy</h2>
                 <p>
-                  Requests for early payouts will not be honored under any circumstances, regardless 
-                  of vote count, ranking position, or individual situation. All participants must 
-                  wait until the official payout period following the conclusion of voting.
-                </p>
-              </section>
-
-              <section>
-                <h2 className="text-xl font-semibold">8. Withdrawal Policy</h2>
-                <p>
-                  Nominees may withdraw from the awards at any time by submitting a formal withdrawal 
-                  request to <a href="mailto:awardsacia@gmail.com" className="text-secondary hover:underline">awardsacia@gmail.com</a>.
+                  Early payout requests are strictly prohibited and will not be considered under any 
+                  circumstances. This policy applies regardless of:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Upon withdrawal, the nominee's profile will be removed from public listings.</li>
-                  <li>No further participation or ranking will occur after withdrawal.</li>
-                  <li>Withdrawn nominees may not be eligible for reinstatement in the same award cycle.</li>
+                  <li>Vote count or ranking position</li>
+                  <li>Individual circumstances or emergencies</li>
+                  <li>The amount of time remaining in the voting period</li>
+                  <li>Any external pressures or demands</li>
                 </ul>
+                <p className="mt-4">
+                  All participants must wait until the official payout period following the conclusion 
+                  of voting and the completion of all verification processes.
+                </p>
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">9. Conduct, Abuse & Disqualification</h2>
+                <h2 className="text-xl font-semibold">11. Conduct, Abuse & Disqualification</h2>
                 <p>
                   ACIA maintains a zero-tolerance policy for misconduct. Any form of the following 
                   will result in immediate disqualification, suspension, or removal from the platform 
@@ -134,7 +183,7 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">10. Platform Rights & Discretion</h2>
+                <h2 className="text-xl font-semibold">12. Platform Rights & Discretion</h2>
                 <p>ACIA reserves the right to:</p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Verify all votes and remove fraudulent or suspicious votes</li>
@@ -147,7 +196,7 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">11. No Guaranteed Ranking</h2>
+                <h2 className="text-xl font-semibold">13. No Guaranteed Ranking</h2>
                 <p>
                   Nomination and participation in ACIA does not guarantee:
                 </p>
@@ -163,7 +212,7 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">12. Intellectual Property</h2>
+                <h2 className="text-xl font-semibold">14. Intellectual Property</h2>
                 <p>
                   By registering, nominees grant ACIA a non-exclusive license to use their name, 
                   alias, profile photo, and related content for promotional purposes related to the 
@@ -172,7 +221,7 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">13. Data & Privacy</h2>
+                <h2 className="text-xl font-semibold">15. Data & Privacy</h2>
                 <p>
                   Personal data collected through the ACIA platform is handled in accordance with 
                   applicable data protection laws. We are committed to protecting your privacy:
@@ -185,7 +234,7 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">14. Limitation of Liability</h2>
+                <h2 className="text-xl font-semibold">16. Limitation of Liability</h2>
                 <p>
                   ACIA is provided "as is" without warranties of any kind, express or implied. 
                   We are not liable for any direct, indirect, incidental, or consequential damages 
@@ -195,7 +244,7 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">15. Dispute Resolution</h2>
+                <h2 className="text-xl font-semibold">17. Dispute Resolution</h2>
                 <p>
                   Any disputes, concerns, or complaints should first be addressed through official 
                   communication with ACIA at{" "}
@@ -208,7 +257,7 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">16. Changes to Terms</h2>
+                <h2 className="text-xl font-semibold">18. Changes to Terms</h2>
                 <p>
                   ACIA may update these Terms and Conditions at any time. Changes will be posted on 
                   this page with an updated revision date. Continued use of the platform after changes 
@@ -217,7 +266,7 @@ const Terms = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold">17. Contact</h2>
+                <h2 className="text-xl font-semibold">19. Contact</h2>
                 <p>
                   For questions, concerns, or inquiries regarding these Terms and Conditions, 
                   please contact us at{" "}
