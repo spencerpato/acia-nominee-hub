@@ -63,7 +63,7 @@ const Footer = () => {
 
           {/* Legal */}
           <div>
-            <h4 className="font-serif text-lg mb-4">Legal</h4>
+            <h4 className="font-serif text-lg mb-4">Legal & Support</h4>
             <ul className="space-y-2">
               <li>
                 <Link 
@@ -87,6 +87,14 @@ const Footer = () => {
                   className="text-sm text-primary-foreground/70 hover:text-secondary transition-colors"
                 >
                   Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/faq" 
+                  className="text-sm text-primary-foreground/70 hover:text-secondary transition-colors"
+                >
+                  FAQ
                 </Link>
               </li>
               <li>

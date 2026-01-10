@@ -109,6 +109,50 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          admin_user_id: string | null
+          category: string
+          creator_id: string | null
+          id: string
+          recipient_email: string
+          recipient_name: string | null
+          sent_at: string
+          status: string | null
+          subject: string
+        }
+        Insert: {
+          admin_user_id?: string | null
+          category: string
+          creator_id?: string | null
+          id?: string
+          recipient_email: string
+          recipient_name?: string | null
+          sent_at?: string
+          status?: string | null
+          subject: string
+        }
+        Update: {
+          admin_user_id?: string | null
+          category?: string
+          creator_id?: string | null
+          id?: string
+          recipient_email?: string
+          recipient_name?: string | null
+          sent_at?: string
+          status?: string | null
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery: {
         Row: {
           created_at: string
