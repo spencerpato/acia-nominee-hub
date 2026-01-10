@@ -15,6 +15,7 @@ import CreatorTips from "./pages/CreatorTips";
 import CreatorProfile from "./pages/CreatorProfile";
 import DashboardRankings from "./pages/DashboardRankings";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminNominees from "./pages/AdminNominees";
 import Leaderboard from "./pages/Leaderboard";
 import Gallery from "./pages/Gallery";
 import About from "./pages/About";
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/dashboard/profile" element={<CreatorProfile />} />
           <Route path="/dashboard/rankings" element={<DashboardRankings />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/nominees" element={<AdminNominees />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/about" element={<About />} />
