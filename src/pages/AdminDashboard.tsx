@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { Loader2, LogOut, Users, CheckCircle, XCircle, Trash2, Plus, FolderOpen, Image, Upload } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Loader2, LogOut, Users, CheckCircle, XCircle, Trash2, Plus, FolderOpen, Image, Upload, Mail, UserCheck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -237,69 +237,77 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen flex flex-col bg-muted">
       <Navbar />
-      <main className="flex-1 container py-8">
-        <div className="flex justify-between items-center mb-8">
+      <main className="flex-1 container py-4 md:py-8 px-4">
+        {/* Header - Mobile Responsive */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
           <div>
-            <h1 className="font-serif text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="font-serif text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               {isSuperAdmin ? "Superadmin" : "Admin"} - Manage creators, categories & gallery
             </p>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" /> Sign Out
-          </Button>
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <Button asChild className="btn-gold flex-1 sm:flex-none">
+              <Link to="/admin/nominees">
+                <UserCheck className="h-4 w-4 mr-2" /> Nominees
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={handleSignOut} className="flex-1 sm:flex-none">
+              <LogOut className="h-4 w-4 mr-2" /> Sign Out
+            </Button>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        {/* Stats - Mobile Responsive Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-secondary/20">
-                  <Users className="h-6 w-6 text-secondary" />
+            <CardContent className="pt-4 md:pt-6">
+              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                <div className="p-2 md:p-3 rounded-full bg-secondary/20">
+                  <Users className="h-5 w-5 md:h-6 md:w-6 text-secondary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Creators</p>
-                  <p className="text-3xl font-bold">{creators.length}</p>
+                <div className="text-center md:text-left">
+                  <p className="text-xs md:text-sm text-muted-foreground">Total Creators</p>
+                  <p className="text-2xl md:text-3xl font-bold">{creators.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-green-500/20">
-                  <CheckCircle className="h-6 w-6 text-green-500" />
+            <CardContent className="pt-4 md:pt-6">
+              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                <div className="p-2 md:p-3 rounded-full bg-green-500/20">
+                  <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-green-500" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Approved</p>
-                  <p className="text-3xl font-bold">{approvedCreators.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-orange-500/20">
-                  <FolderOpen className="h-6 w-6 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Categories</p>
-                  <p className="text-3xl font-bold">{categories.length}</p>
+                <div className="text-center md:text-left">
+                  <p className="text-xs md:text-sm text-muted-foreground">Approved</p>
+                  <p className="text-2xl md:text-3xl font-bold">{approvedCreators.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-purple-500/20">
-                  <Image className="h-6 w-6 text-purple-500" />
+            <CardContent className="pt-4 md:pt-6">
+              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                <div className="p-2 md:p-3 rounded-full bg-orange-500/20">
+                  <FolderOpen className="h-5 w-5 md:h-6 md:w-6 text-orange-500" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Gallery Images</p>
-                  <p className="text-3xl font-bold">{galleryItems.length}</p>
+                <div className="text-center md:text-left">
+                  <p className="text-xs md:text-sm text-muted-foreground">Categories</p>
+                  <p className="text-2xl md:text-3xl font-bold">{categories.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 md:pt-6">
+              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                <div className="p-2 md:p-3 rounded-full bg-purple-500/20">
+                  <Image className="h-5 w-5 md:h-6 md:w-6 text-purple-500" />
+                </div>
+                <div className="text-center md:text-left">
+                  <p className="text-xs md:text-sm text-muted-foreground">Gallery Images</p>
+                  <p className="text-2xl md:text-3xl font-bold">{galleryItems.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -307,59 +315,64 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="pending" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="pending">Pending ({pendingCreators.length})</TabsTrigger>
-            <TabsTrigger value="approved">Approved</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
-            <TabsTrigger value="gallery">Gallery</TabsTrigger>
-            <TabsTrigger value="migration">Migration</TabsTrigger>
+          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
+            <TabsTrigger value="pending" className="text-xs md:text-sm">Pending ({pendingCreators.length})</TabsTrigger>
+            <TabsTrigger value="approved" className="text-xs md:text-sm">Approved</TabsTrigger>
+            <TabsTrigger value="categories" className="text-xs md:text-sm">Categories</TabsTrigger>
+            <TabsTrigger value="gallery" className="text-xs md:text-sm">Gallery</TabsTrigger>
+            <TabsTrigger value="migration" className="text-xs md:text-sm">Migration</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending">
             <Card>
               <CardHeader>
-                <CardTitle>Pending Approvals</CardTitle>
+                <CardTitle className="text-lg md:text-xl">Pending Approvals</CardTitle>
                 <CardDescription>Review and approve new creator registrations</CardDescription>
               </CardHeader>
               <CardContent>
                 {pendingCreators.length === 0 ? (
                   <p className="text-muted-foreground text-center py-8">No pending creators</p>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Alias</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Votes</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pendingCreators.map((creator) => (
-                        <TableRow key={creator.id}>
-                          <TableCell className="font-medium">{creator.full_name}</TableCell>
-                          <TableCell>@{creator.alias}</TableCell>
-                          <TableCell>{creator.email}</TableCell>
-                          <TableCell>{creator.vote_count}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => handleApprove(creator.id, true)}>
-                                <CheckCircle className="h-4 w-4 mr-1" /> Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleDeleteCreator(creator.id)}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" /> Reject
-                              </Button>
-                            </div>
-                          </TableCell>
+                  <div className="overflow-x-auto -mx-4 md:mx-0">
+                    <Table className="min-w-[600px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Alias</TableHead>
+                          <TableHead className="hidden md:table-cell">Email</TableHead>
+                          <TableHead>Votes</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {pendingCreators.map((creator) => (
+                          <TableRow key={creator.id}>
+                            <TableCell className="font-medium">{creator.full_name}</TableCell>
+                            <TableCell>@{creator.alias}</TableCell>
+                            <TableCell className="hidden md:table-cell">{creator.email}</TableCell>
+                            <TableCell>{creator.vote_count}</TableCell>
+                            <TableCell>
+                              <div className="flex gap-1 md:gap-2">
+                                <Button size="sm" onClick={() => handleApprove(creator.id, true)} className="px-2 md:px-3">
+                                  <CheckCircle className="h-4 w-4 md:mr-1" /> 
+                                  <span className="hidden md:inline">Approve</span>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteCreator(creator.id)}
+                                  className="px-2 md:px-3"
+                                >
+                                  <XCircle className="h-4 w-4 md:mr-1" /> 
+                                  <span className="hidden md:inline">Reject</span>
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -368,53 +381,57 @@ const AdminDashboard = () => {
           <TabsContent value="approved">
             <Card>
               <CardHeader>
-                <CardTitle>Approved Creators</CardTitle>
+                <CardTitle className="text-lg md:text-xl">Approved Creators</CardTitle>
                 <CardDescription>Manage active creators</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Alias</TableHead>
-                      <TableHead>Votes</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {approvedCreators.map((creator) => (
-                      <TableRow key={creator.id}>
-                        <TableCell className="font-medium">{creator.full_name}</TableCell>
-                        <TableCell>@{creator.alias}</TableCell>
-                        <TableCell>{creator.vote_count}</TableCell>
-                        <TableCell>
-                          <Badge variant={creator.is_active ? "default" : "secondary"}>
-                            {creator.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleToggleActive(creator.id, !creator.is_active)}
-                            >
-                              {creator.is_active ? "Deactivate" : "Activate"}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteCreator(creator.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                <div className="overflow-x-auto -mx-4 md:mx-0">
+                  <Table className="min-w-[600px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Alias</TableHead>
+                        <TableHead>Votes</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {approvedCreators.map((creator) => (
+                        <TableRow key={creator.id}>
+                          <TableCell className="font-medium">{creator.full_name}</TableCell>
+                          <TableCell>@{creator.alias}</TableCell>
+                          <TableCell>{creator.vote_count}</TableCell>
+                          <TableCell>
+                            <Badge variant={creator.is_active ? "default" : "secondary"}>
+                              {creator.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1 md:gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleToggleActive(creator.id, !creator.is_active)}
+                                className="px-2 md:px-3 text-xs md:text-sm"
+                              >
+                                {creator.is_active ? "Deactivate" : "Activate"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteCreator(creator.id)}
+                                className="px-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
