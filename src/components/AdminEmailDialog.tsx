@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Send, AlertCircle } from "lucide-react";
+import { Mail, AlertCircle, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   emailTemplates,
@@ -36,6 +35,10 @@ interface AdminEmailDialogProps {
   creator: Creator;
 }
 
+const getVotingLink = (alias: string): string => {
+  return `${window.location.origin}/nominee/${alias}`;
+};
+
 export const AdminEmailDialog = ({
   open,
   onOpenChange,
@@ -43,81 +46,57 @@ export const AdminEmailDialog = ({
 }: AdminEmailDialogProps) => {
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<EmailCategory | "">("");
-  const [sending, setSending] = useState(false);
-  const [previewHtml, setPreviewHtml] = useState<string>("");
+  const [previewText, setPreviewText] = useState<string>("");
+  const [subject, setSubject] = useState<string>("");
 
   const voteCount = creator.vote_count || 0;
   const expectedEarnings = formatEarnings(calculateExpectedEarnings(voteCount));
+  const votingLink = getVotingLink(creator.alias);
 
   const handleCategoryChange = (value: EmailCategory) => {
     setSelectedCategory(value);
     const template = getTemplateById(value);
     if (template) {
-      const html = template.generateContent({
+      const content = template.generateContent({
         nomineeName: creator.full_name,
         voteCount,
         expectedEarnings,
+        votingLink,
+        creatorAlias: creator.alias,
       });
-      setPreviewHtml(html);
+      setPreviewText(content);
+      setSubject(template.subject);
     }
   };
 
-  const handleSendEmail = async () => {
-    if (!selectedCategory) {
+  const handleOpenGmail = () => {
+    if (!selectedCategory || !previewText) {
       toast({
         title: "Error",
-        description: "Please select an email category",
+        description: "Please select an email category first",
         variant: "destructive",
       });
       return;
     }
 
-    const template = getTemplateById(selectedCategory);
-    if (!template) return;
+    // Construct Gmail compose URL
+    const gmailUrl = new URL("https://mail.google.com/mail/?view=cm&fs=1");
+    gmailUrl.searchParams.set("to", creator.email);
+    gmailUrl.searchParams.set("su", subject);
+    gmailUrl.searchParams.set("body", previewText);
 
-    setSending(true);
+    // Open Gmail in a new tab
+    window.open(gmailUrl.toString(), "_blank");
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
+    toast({
+      title: "Gmail Opened",
+      description: "The email has been prepared in Gmail. Please review and send.",
+    });
 
-      const response = await supabase.functions.invoke("send-admin-email", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          creatorId: creator.id,
-          recipientEmail: creator.email,
-          recipientName: creator.full_name,
-          category: selectedCategory,
-          subject: template.subject,
-          htmlContent: template.generateContent({
-            nomineeName: creator.full_name,
-            voteCount,
-            expectedEarnings,
-          }),
-        },
-      });
-
-      if (response.error) throw new Error(response.error.message);
-
-      toast({
-        title: "Email Sent!",
-        description: `Email successfully sent to ${creator.email}`,
-      });
-
-      onOpenChange(false);
-      setSelectedCategory("");
-      setPreviewHtml("");
-    } catch (error: any) {
-      toast({
-        title: "Failed to send email",
-        description: error.message || "An error occurred while sending the email",
-        variant: "destructive",
-      });
-    } finally {
-      setSending(false);
-    }
+    onOpenChange(false);
+    setSelectedCategory("");
+    setPreviewText("");
+    setSubject("");
   };
 
   return (
@@ -126,7 +105,7 @@ export const AdminEmailDialog = ({
         <DialogHeader>
           <DialogTitle>Send Email to {creator.full_name}</DialogTitle>
           <DialogDescription>
-            Select an email template and preview before sending
+            Select an email template, preview it, then open in Gmail to send
           </DialogDescription>
         </DialogHeader>
 
@@ -146,8 +125,15 @@ export const AdminEmailDialog = ({
               <span className="font-medium">awardsacia@gmail.com</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Earnings:</span>{" "}
-              <span className="font-medium text-green-600">{expectedEarnings}</span>
+              <span className="text-muted-foreground">Voting Link:</span>{" "}
+              <a 
+                href={votingLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-medium text-primary hover:underline text-xs break-all"
+              >
+                {votingLink}
+              </a>
             </div>
           </div>
 
@@ -169,18 +155,16 @@ export const AdminEmailDialog = ({
           </div>
 
           {/* Preview */}
-          {previewHtml && (
+          {previewText && (
             <div className="space-y-2">
               <Label>Email Preview</Label>
               <div className="border rounded-lg p-4 bg-card max-h-80 overflow-y-auto">
-                <div 
-                  className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: previewHtml }}
-                />
-                <div className="mt-4 pt-4 border-t text-muted-foreground text-sm">
-                  <p>Regards,</p>
-                  <p className="font-semibold">Africa Creators Impact Awards (ACIA)</p>
+                <div className="text-sm font-medium text-muted-foreground mb-2">
+                  Subject: {subject}
                 </div>
+                <pre className="whitespace-pre-wrap text-sm font-sans">
+                  {previewText}
+                </pre>
               </div>
             </div>
           )}
@@ -194,6 +178,15 @@ export const AdminEmailDialog = ({
               </AlertDescription>
             </Alert>
           )}
+
+          {/* Info about Gmail */}
+          <Alert>
+            <Mail className="h-4 w-4" />
+            <AlertDescription>
+              Clicking "Open in Gmail" will open a new Gmail compose window with the email pre-filled. 
+              Make sure you're logged into awardsacia@gmail.com.
+            </AlertDescription>
+          </Alert>
         </div>
 
         {/* Actions */}
@@ -202,21 +195,12 @@ export const AdminEmailDialog = ({
             Cancel
           </Button>
           <Button
-            onClick={handleSendEmail}
-            disabled={!selectedCategory || sending}
+            onClick={handleOpenGmail}
+            disabled={!selectedCategory}
             className="btn-gold"
           >
-            {sending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                Send Email
-              </>
-            )}
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Open in Gmail
           </Button>
         </div>
       </DialogContent>
