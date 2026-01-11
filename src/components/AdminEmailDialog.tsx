@@ -82,6 +82,9 @@ export const AdminEmailDialog = ({
       if (!session) throw new Error("Not authenticated");
 
       const response = await supabase.functions.invoke("send-admin-email", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: {
           creatorId: creator.id,
           recipientEmail: creator.email,
