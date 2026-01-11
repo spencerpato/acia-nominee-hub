@@ -32,22 +32,25 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Get auth header for user verification
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      console.error("No authorization header provided");
-      return new Response(JSON.stringify({ error: "Unauthorized - No auth header" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.error("Missing or invalid Authorization header");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - Missing bearer token" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
-    // Create client with user's auth to verify identity
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const token = authHeader.replace("Bearer ", "");
 
-    // Verify user is authenticated
-    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
-    if (userError || !user) {
+    // Create client and verify the user session using the provided access token
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
+
+    if (userError || !userData?.user) {
       console.error("Auth error:", userError?.message || "No user found");
       return new Response(JSON.stringify({ error: "Unauthorized - Invalid session" }), {
         status: 401,
@@ -55,7 +58,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    console.log("User authenticated:", user.id);
+    const userId = userData.user.id;
+
+    console.log("User authenticated:", userId);
 
     // Use service role client to check admin role (bypasses RLS)
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
@@ -63,7 +68,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: roleData, error: roleError } = await supabaseAdmin
       .from("user_roles")
       .select("role")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .in("role", ["admin", "superadmin"]);
 
     if (roleError) {
@@ -75,14 +80,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (!roleData || roleData.length === 0) {
-      console.error("User is not an admin:", user.id);
+      console.error("User is not an admin:", userId);
       return new Response(JSON.stringify({ error: "Forbidden: Admin access required" }), {
         status: 403,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    console.log("Admin role verified for user:", user.id);
+    console.log("Admin role verified for user:", userId);
 
     const { creatorId, recipientEmail, recipientName, category, subject, htmlContent }: EmailRequest = await req.json();
 
@@ -129,7 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
       recipient_name: recipientName,
       category: category,
       subject: subject,
-      admin_user_id: user.id,
+      admin_user_id: userId,
       status: "sent",
     });
 
