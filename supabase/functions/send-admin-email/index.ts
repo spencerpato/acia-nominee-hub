@@ -25,44 +25,64 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Initialize Supabase client with service role for database operations
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    // Get auth header for user verification
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      console.error("No authorization header provided");
+      return new Response(JSON.stringify({ error: "Unauthorized - No auth header" }), {
         status: 401,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    // Create client with user's auth to verify identity
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify user is admin
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      console.error("Auth error:", userError?.message || "No user found");
+      return new Response(JSON.stringify({ error: "Unauthorized - Invalid session" }), {
         status: 401,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    // Check admin role
-    const { data: roleData } = await supabase
+    console.log("User authenticated:", user.id);
+
+    // Use service role client to check admin role (bypasses RLS)
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data: roleData, error: roleError } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .in("role", ["admin", "superadmin"])
-      .single();
+      .in("role", ["admin", "superadmin"]);
 
-    if (!roleData) {
+    if (roleError) {
+      console.error("Role check error:", roleError.message);
+      return new Response(JSON.stringify({ error: "Failed to verify permissions" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (!roleData || roleData.length === 0) {
+      console.error("User is not an admin:", user.id);
       return new Response(JSON.stringify({ error: "Forbidden: Admin access required" }), {
         status: 403,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
+
+    console.log("Admin role verified for user:", user.id);
 
     const { creatorId, recipientEmail, recipientName, category, subject, htmlContent }: EmailRequest = await req.json();
 
@@ -77,6 +97,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     // Send email using Resend API directly
+    console.log("Sending email to:", recipientEmail);
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -101,8 +122,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Email sent successfully:", emailData);
 
-    // Log the email in database
-    const { error: logError } = await supabase.from("email_logs").insert({
+    // Log the email in database using service role
+    const { error: logError } = await supabaseAdmin.from("email_logs").insert({
       creator_id: creatorId,
       recipient_email: recipientEmail,
       recipient_name: recipientName,
