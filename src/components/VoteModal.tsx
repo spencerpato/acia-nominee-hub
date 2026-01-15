@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, CheckCircle, AlertCircle, Lock, Smartphone, Star, Vote, Share2, Facebook, Twitter, Link2 } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, Lock, Smartphone, Star, Vote, Share2, Facebook, Twitter, Link2, Mail, Globe } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  getCountryByName, 
+  VOTE_PRICE_KES_KENYA, 
+  VOTE_PRICE_KES_INTERNATIONAL,
+  convertFromKES,
+  formatCurrency,
+} from "@/lib/africanCountries";
 
 interface VoteModalProps {
   isOpen: boolean;
@@ -19,12 +26,11 @@ interface VoteModalProps {
   creatorAlias: string;
   creatorPhoto?: string;
   creatorCategory?: string;
+  creatorCountry?: string;
   onVoteSuccess?: () => void;
 }
 
 type PaymentState = "idle" | "initiating" | "polling" | "success" | "failed";
-
-const VOTE_PRICE = 10; // KES per vote
 
 const VoteModal = ({
   isOpen,
@@ -34,11 +40,19 @@ const VoteModal = ({
   creatorAlias,
   creatorPhoto,
   creatorCategory,
+  creatorCountry = "Kenya",
   onVoteSuccess,
 }: VoteModalProps) => {
+  const isKenyan = creatorCountry === "Kenya";
+  const votePrice = isKenyan ? VOTE_PRICE_KES_KENYA : VOTE_PRICE_KES_INTERNATIONAL;
+  const countryInfo = getCountryByName(creatorCountry);
+  const currency = countryInfo?.currency || "KES";
+
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [votes, setVotes] = useState(1);
-  const [amount, setAmount] = useState(10);
+  const [amount, setAmount] = useState(votePrice);
+  const [displayAmount, setDisplayAmount] = useState(isKenyan ? votePrice : convertFromKES(votePrice, currency));
   const [paymentState, setPaymentState] = useState<PaymentState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -56,17 +70,35 @@ const VoteModal = ({
   // Handle votes input change
   const handleVotesChange = (value: string) => {
     const numVotes = parseInt(value) || 0;
-    setVotes(Math.max(0, numVotes));
-    setAmount(Math.max(0, numVotes) * VOTE_PRICE);
+    const safeVotes = Math.max(0, numVotes);
+    setVotes(safeVotes);
+    const kesAmount = safeVotes * votePrice;
+    setAmount(kesAmount);
+    if (!isKenyan) {
+      setDisplayAmount(convertFromKES(kesAmount, currency));
+    } else {
+      setDisplayAmount(kesAmount);
+    }
     setErrorMessage("");
   };
 
   // Handle amount input change with truncation (not rounding)
   const handleAmountChange = (value: string) => {
     const numAmount = parseInt(value) || 0;
-    setAmount(Math.max(0, numAmount));
-    // Truncate to nearest whole number below (floor division)
-    setVotes(Math.floor(Math.max(0, numAmount) / VOTE_PRICE));
+    const safeAmount = Math.max(0, numAmount);
+    
+    if (isKenyan) {
+      setAmount(safeAmount);
+      setDisplayAmount(safeAmount);
+      setVotes(Math.floor(safeAmount / votePrice));
+    } else {
+      setDisplayAmount(safeAmount);
+      // Convert back to KES for calculation
+      const kesEquivalent = Math.floor(safeAmount / (convertFromKES(1, currency)));
+      const calculatedVotes = Math.floor(kesEquivalent / votePrice);
+      setVotes(Math.max(0, calculatedVotes));
+      setAmount(calculatedVotes * votePrice);
+    }
     setErrorMessage("");
   };
 
@@ -79,11 +111,21 @@ const VoteModal = ({
     };
   }, []);
 
+  // Reset amounts when country changes
+  useEffect(() => {
+    const newPrice = isKenyan ? VOTE_PRICE_KES_KENYA : VOTE_PRICE_KES_INTERNATIONAL;
+    setVotes(1);
+    setAmount(newPrice);
+    setDisplayAmount(isKenyan ? newPrice : convertFromKES(newPrice, currency));
+  }, [creatorCountry, isKenyan, currency]);
+
   const resetState = () => {
     setPaymentState("idle");
     setErrorMessage("");
+    const newPrice = isKenyan ? VOTE_PRICE_KES_KENYA : VOTE_PRICE_KES_INTERNATIONAL;
     setVotes(1);
-    setAmount(10);
+    setAmount(newPrice);
+    setDisplayAmount(isKenyan ? newPrice : convertFromKES(newPrice, currency));
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
@@ -94,6 +136,7 @@ const VoteModal = ({
     if (paymentState !== "initiating" && paymentState !== "polling") {
       resetState();
       setPhoneNumber("");
+      setEmail("");
       onClose();
     }
   };
@@ -102,6 +145,10 @@ const VoteModal = ({
     const cleaned = phone.replace(/\s+/g, "");
     const kenyanRegex = /^(0[17]\d{8}|254[17]\d{8})$/;
     return kenyanRegex.test(cleaned);
+  };
+
+  const validateEmail = (emailStr: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr);
   };
 
   const pollPaymentStatus = (paymentId: string, expectedVotes: number) => {
@@ -164,22 +211,21 @@ const VoteModal = ({
     }, 2000);
   };
 
-  const handleSubmit = async () => {
+  const handleLipanaPayment = async () => {
     if (!validatePhoneNumber(phoneNumber)) {
       setErrorMessage("Please enter a valid M-Pesa number");
       return;
     }
 
-    if (votes < 1 || amount < VOTE_PRICE) {
-      setErrorMessage("Minimum is 1 vote (KES 10)");
+    if (votes < 1 || amount < votePrice) {
+      setErrorMessage(`Minimum is 1 vote (KES ${votePrice})`);
       return;
     }
 
     setPaymentState("initiating");
     setErrorMessage("");
 
-    // Calculate final amount based on votes (to ensure consistency)
-    const finalAmount = votes * VOTE_PRICE;
+    const finalAmount = votes * votePrice;
 
     try {
       const response = await fetch(
@@ -218,7 +264,72 @@ const VoteModal = ({
     }
   };
 
-  const isPaymentDisabled = paymentState === "initiating" || !phoneNumber || votes < 1 || amount < VOTE_PRICE;
+  const handlePaystackPayment = async () => {
+    if (!validateEmail(email)) {
+      setErrorMessage("Please enter a valid email address");
+      return;
+    }
+
+    if (votes < 1) {
+      setErrorMessage("Minimum is 1 vote");
+      return;
+    }
+
+    setPaymentState("initiating");
+    setErrorMessage("");
+
+    // Convert amount to smallest currency unit (kobo, pesewas, etc.)
+    const amountInSmallestUnit = displayAmount * 100;
+
+    try {
+      const response = await fetch(
+        "https://qprtljmxfulproevgydc.supabase.co/functions/v1/initiate-paystack",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            creator_id: creatorId,
+            email: email,
+            amount: amountInSmallestUnit,
+            votes_expected: votes,
+            currency: currency,
+            callback_url: `${window.location.origin}/vote-success`,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to initiate payment");
+      }
+
+      // Redirect to Paystack checkout
+      if (result.authorization_url) {
+        window.location.href = result.authorization_url;
+      } else {
+        throw new Error("No authorization URL received");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      setPaymentState("failed");
+      setErrorMessage(error instanceof Error ? error.message : "Failed to initiate payment");
+    }
+  };
+
+  const handleSubmit = () => {
+    if (isKenyan) {
+      handleLipanaPayment();
+    } else {
+      handlePaystackPayment();
+    }
+  };
+
+  const isPaymentDisabled = paymentState === "initiating" || 
+    (isKenyan ? !phoneNumber : !email) || 
+    votes < 1;
 
   const shareUrl = `${window.location.origin}/nominee/${creatorId}`;
   const shareText = `Support @${creatorAlias} at the African Creator Impact Awards! Vote now:`;
@@ -271,11 +382,17 @@ const VoteModal = ({
 
             <h3 className="font-bold text-base text-foreground mt-3">{creatorName}</h3>
             <p className="text-primary font-medium text-xs">@{creatorAlias}</p>
-            {creatorCategory && (
-              <Badge variant="outline" className="mt-1 text-muted-foreground text-[10px] px-2 py-0">
-                {creatorCategory}
+            <div className="flex items-center gap-2 mt-1">
+              {creatorCategory && (
+                <Badge variant="outline" className="text-muted-foreground text-[10px] px-2 py-0">
+                  {creatorCategory}
+                </Badge>
+              )}
+              <Badge variant="outline" className="text-muted-foreground text-[10px] px-2 py-0">
+                <Globe className="h-2.5 w-2.5 mr-0.5" />
+                {creatorCountry}
               </Badge>
-            )}
+            </div>
           </div>
 
           {/* Content based on state */}
@@ -331,7 +448,7 @@ const VoteModal = ({
                 </p>
                 <div className="mt-3 px-3 py-1.5 bg-muted rounded-lg">
                   <p className="text-xs font-medium text-foreground">
-                    {votes} vote{votes > 1 ? 's' : ''} • KES {votes * VOTE_PRICE}
+                    {votes} vote{votes > 1 ? 's' : ''} • KES {votes * votePrice}
                   </p>
                 </div>
               </div>
@@ -341,7 +458,9 @@ const VoteModal = ({
                 <div className="bg-secondary/10 border border-secondary/30 rounded-lg p-2 mb-3 text-center">
                   <div className="flex items-center justify-center gap-1 text-secondary">
                     <Vote className="h-3.5 w-3.5" />
-                    <span className="text-xs font-semibold">1 Vote = KES 10</span>
+                    <span className="text-xs font-semibold">
+                      1 Vote = {isKenyan ? `KES ${VOTE_PRICE_KES_KENYA}` : `KES ${VOTE_PRICE_KES_INTERNATIONAL} (≈ ${formatCurrency(convertFromKES(VOTE_PRICE_KES_INTERNATIONAL, currency), currency)})`}
+                    </span>
                   </div>
                 </div>
 
@@ -362,13 +481,12 @@ const VoteModal = ({
                   </div>
                   <div className="space-y-0.5">
                     <label className="text-[10px] font-medium text-muted-foreground">
-                      Amount (KES)
+                      Amount ({isKenyan ? "KES" : currency})
                     </label>
                     <Input
                       type="number"
-                      min="10"
-                      step="10"
-                      value={amount || ""}
+                      min={isKenyan ? "10" : "1"}
+                      value={displayAmount || ""}
                       onChange={(e) => handleAmountChange(e.target.value)}
                       className="h-10 text-center text-base font-semibold"
                       disabled={paymentState === "initiating"}
@@ -381,41 +499,70 @@ const VoteModal = ({
                   <div className="bg-primary/5 border border-primary/20 rounded-lg p-2 mb-3">
                     <p className="text-xs text-foreground text-center">
                       Supporting <span className="font-bold text-primary">@{creatorAlias}</span> with{" "}
-                      <span className="font-bold">{votes} vote{votes > 1 ? 's' : ''}</span> (
-                      <span className="font-bold text-secondary">KES {votes * VOTE_PRICE}</span>)
+                      <span className="font-bold">{votes} vote{votes > 1 ? 's' : ''}</span>
+                      {isKenyan ? (
+                        <> (<span className="font-bold text-secondary">KES {votes * votePrice}</span>)</>
+                      ) : (
+                        <> (<span className="font-bold text-secondary">{formatCurrency(displayAmount, currency)}</span>)</>
+                      )}
                     </p>
                   </div>
                 )}
 
-                {votes < 1 && amount > 0 && amount < VOTE_PRICE && (
+                {votes < 1 && displayAmount > 0 && (
                   <p className="text-[10px] text-destructive text-center mb-2">
-                    Minimum amount is KES 10 for 1 vote
+                    Minimum is 1 vote
                   </p>
                 )}
 
-                {/* Phone input */}
-                <div className="space-y-0.5 mb-3">
-                  <label className="text-[10px] font-medium text-muted-foreground">
-                    M-Pesa Phone Number
-                  </label>
-                  <div className="relative">
-                    <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input
-                      type="tel"
-                      placeholder="0712 345 678"
-                      value={phoneNumber}
-                      onChange={(e) => {
-                        setPhoneNumber(e.target.value);
-                        setErrorMessage("");
-                      }}
-                      className="pl-9 h-10 text-sm"
-                      disabled={paymentState === "initiating"}
-                    />
+                {/* Phone input for Kenya / Email for others */}
+                {isKenyan ? (
+                  <div className="space-y-0.5 mb-3">
+                    <label className="text-[10px] font-medium text-muted-foreground">
+                      M-Pesa Phone Number
+                    </label>
+                    <div className="relative">
+                      <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        type="tel"
+                        placeholder="0712 345 678"
+                        value={phoneNumber}
+                        onChange={(e) => {
+                          setPhoneNumber(e.target.value);
+                          setErrorMessage("");
+                        }}
+                        className="pl-9 h-10 text-sm"
+                        disabled={paymentState === "initiating"}
+                      />
+                    </div>
+                    {errorMessage && (
+                      <p className="text-[10px] text-destructive">{errorMessage}</p>
+                    )}
                   </div>
-                  {errorMessage && (
-                    <p className="text-[10px] text-destructive">{errorMessage}</p>
-                  )}
-                </div>
+                ) : (
+                  <div className="space-y-0.5 mb-3">
+                    <label className="text-[10px] font-medium text-muted-foreground">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          setErrorMessage("");
+                        }}
+                        className="pl-9 h-10 text-sm"
+                        disabled={paymentState === "initiating"}
+                      />
+                    </div>
+                    {errorMessage && (
+                      <p className="text-[10px] text-destructive">{errorMessage}</p>
+                    )}
+                  </div>
+                )}
 
                 {/* Submit button */}
                 <Button
@@ -428,9 +575,13 @@ const VoteModal = ({
                       <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
                       Processing...
                     </>
+                  ) : isKenyan ? (
+                    <>
+                      Pay KES {votes * votePrice} for {votes} Vote{votes > 1 ? 's' : ''}
+                    </>
                   ) : (
                     <>
-                      Pay KES {votes * VOTE_PRICE} for {votes} Vote{votes > 1 ? 's' : ''}
+                      Pay {formatCurrency(displayAmount, currency)} for {votes} Vote{votes > 1 ? 's' : ''}
                     </>
                   )}
                 </Button>
@@ -438,7 +589,7 @@ const VoteModal = ({
                 {/* Security note */}
                 <div className="flex items-center justify-center gap-1.5 mt-2 text-[10px] text-muted-foreground">
                   <Lock className="h-2.5 w-2.5 text-green-600" />
-                  <span>Secure payment via M-Pesa</span>
+                  <span>Secure payment via {isKenyan ? "M-Pesa" : "Paystack"}</span>
                 </div>
 
                 {/* Social Share */}
