@@ -40,6 +40,7 @@ export type Database = {
           alias: string
           bio: string | null
           category_id: string | null
+          country: string
           created_at: string
           email: string
           full_name: string
@@ -61,6 +62,7 @@ export type Database = {
           alias: string
           bio?: string | null
           category_id?: string | null
+          country?: string
           created_at?: string
           email: string
           full_name: string
@@ -82,6 +84,7 @@ export type Database = {
           alias?: string
           bio?: string | null
           category_id?: string | null
+          country?: string
           created_at?: string
           email?: string
           full_name?: string
@@ -186,9 +189,12 @@ export type Database = {
           checkout_id: string | null
           created_at: string
           creator_id: string
+          currency: string
           id: string
           lipana_response: Json | null
+          payment_gateway: string
           payment_status: string
+          paystack_reference: string | null
           phone_number: string
           reference: string | null
           updated_at: string
@@ -199,9 +205,12 @@ export type Database = {
           checkout_id?: string | null
           created_at?: string
           creator_id: string
+          currency?: string
           id?: string
           lipana_response?: Json | null
+          payment_gateway?: string
           payment_status?: string
+          paystack_reference?: string | null
           phone_number: string
           reference?: string | null
           updated_at?: string
@@ -212,9 +221,12 @@ export type Database = {
           checkout_id?: string | null
           created_at?: string
           creator_id?: string
+          currency?: string
           id?: string
           lipana_response?: Json | null
+          payment_gateway?: string
           payment_status?: string
+          paystack_reference?: string | null
           phone_number?: string
           reference?: string | null
           updated_at?: string

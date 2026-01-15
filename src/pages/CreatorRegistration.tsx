@@ -14,6 +14,7 @@ import { useAuth, useUserRole } from "@/hooks/useAuth";
 import { useCategories } from "@/hooks/useCreators";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { africanCountries } from "@/lib/africanCountries";
 
 const schema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -23,6 +24,7 @@ const schema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores"),
   phone: z.string().optional(),
   categoryId: z.string().min(1, "Category is required"),
+  country: z.string().min(1, "Country is required"),
 });
 
 const CreatorRegistration = () => {
@@ -33,7 +35,7 @@ const CreatorRegistration = () => {
   const { data: categories } = useCategories();
 
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ fullName: "", alias: "", phone: "", categoryId: "" });
+  const [form, setForm] = useState({ fullName: "", alias: "", phone: "", categoryId: "", country: "Kenya" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [prefilled, setPrefilled] = useState(false);
 
@@ -59,6 +61,7 @@ const CreatorRegistration = () => {
         alias: metadata.alias || "",
         phone: metadata.phone || "",
         categoryId: metadata.categoryId || "",
+        country: metadata.country || "Kenya",
       });
       setPrefilled(true);
     }
@@ -115,6 +118,7 @@ const CreatorRegistration = () => {
         email: user.email || "",
         phone: form.phone || null,
         category_id: form.categoryId,
+        country: form.country,
       });
 
       if (insertError) {
@@ -192,6 +196,23 @@ const CreatorRegistration = () => {
               <div>
                 <Label htmlFor="phone">Phone (optional)</Label>
                 <Input id="phone" value={form.phone} onChange={(e) => handleChange("phone", e.target.value)} />
+              </div>
+
+              <div>
+                <Label htmlFor="country">Country</Label>
+                <Select value={form.country} onValueChange={(v) => handleChange("country", v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {africanCountries.map((country) => (
+                      <SelectItem key={country.code} value={country.name}>
+                        {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.country && <p className="text-sm text-destructive mt-1">{errors.country}</p>}
               </div>
 
               <div>

@@ -21,6 +21,7 @@ export interface Creator {
   youtube_url: string | null;
   tiktok_url: string | null;
   website_url: string | null;
+  country: string;
   category?: {
     id: string;
     name: string;
