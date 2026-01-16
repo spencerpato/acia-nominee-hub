@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Creator } from "@/hooks/useCreators";
+import { VOTE_PRICE_KES_KENYA, VOTE_PRICE_KES_INTERNATIONAL, getCountryByName, formatCurrency, convertFromKES } from "@/lib/africanCountries";
 
 const SUPERADMIN_EMAIL = "awardsacia@gmail.com";
 
@@ -384,7 +385,19 @@ const NomineeProfile = () => {
                 Support {creator.alias}
               </h3>
               <p className="text-sm opacity-80 mb-4">
-                1 Vote = KES 10 • You can vote multiple times
+                {creator.country === "Kenya" 
+                  ? "1 Vote = KES 10 • You can vote multiple times"
+                  : (() => {
+                      const countryData = getCountryByName(creator.country);
+                      const priceInLocalCurrency = countryData 
+                        ? convertFromKES(VOTE_PRICE_KES_INTERNATIONAL, countryData.currency)
+                        : VOTE_PRICE_KES_INTERNATIONAL;
+                      const formattedPrice = countryData 
+                        ? formatCurrency(priceInLocalCurrency, countryData.currency)
+                        : `KES ${VOTE_PRICE_KES_INTERNATIONAL}`;
+                      return `1 Vote = ${formattedPrice} • You can vote multiple times`;
+                    })()
+                }
               </p>
               <Button
                 onClick={() => setIsVoteModalOpen(true)}
@@ -407,6 +420,7 @@ const NomineeProfile = () => {
         creatorAlias={creator.alias}
         creatorPhoto={creator.profile_photo_url || undefined}
         creatorCategory={creator.category?.name || "Uncategorized"}
+        creatorCountry={creator.country}
         onVoteSuccess={() => refetch()}
       />
     </div>
