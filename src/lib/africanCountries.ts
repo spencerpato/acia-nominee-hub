@@ -76,3 +76,16 @@ export const formatCurrency = (amount: number, currency: string): string => {
   const symbol = country?.currencySymbol || currency;
   return `${symbol} ${amount.toLocaleString()}`;
 };
+
+// Convert country code to emoji flag
+export const getEmojiFlag = (countryCode: string): string => {
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
+};
+
+// Get emoji flag by country name
+export const getEmojiFlagByName = (countryName: string): string => {
+  const country = getCountryByName(countryName);
+  return country ? getEmojiFlag(country.code) : "🌍";
+};

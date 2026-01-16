@@ -14,7 +14,7 @@ import { useAuth, useUserRole } from "@/hooks/useAuth";
 import { useCategories } from "@/hooks/useCreators";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
-import { africanCountries } from "@/lib/africanCountries";
+import { africanCountries, getEmojiFlag } from "@/lib/africanCountries";
 
 const schema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -204,10 +204,13 @@ const CreatorRegistration = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border border-border z-50">
                     {africanCountries.map((country) => (
                       <SelectItem key={country.code} value={country.name}>
-                        {country.name}
+                        <span className="flex items-center gap-2">
+                          <span>{getEmojiFlag(country.code)}</span>
+                          <span>{country.name}</span>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>

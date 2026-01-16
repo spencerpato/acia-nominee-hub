@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Creator } from "@/hooks/useCreators";
-import { VOTE_PRICE_KES_KENYA, VOTE_PRICE_KES_INTERNATIONAL, getCountryByName, formatCurrency, convertFromKES } from "@/lib/africanCountries";
+import { VOTE_PRICE_KES_KENYA, VOTE_PRICE_KES_INTERNATIONAL, getCountryByName, formatCurrency, convertFromKES, getEmojiFlagByName } from "@/lib/africanCountries";
 
 const SUPERADMIN_EMAIL = "awardsacia@gmail.com";
 
@@ -206,10 +206,16 @@ const NomineeProfile = () => {
               </h1>
               <p className="text-secondary font-medium">@{creator.alias}</p>
               
-              <Badge className="mt-3 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                <Award className="h-3 w-3 mr-1" />
-                Nominee: {creator.category?.name || "Uncategorized"}
-              </Badge>
+              <div className="flex items-center gap-2 mt-3">
+                <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                  <Award className="h-3 w-3 mr-1" />
+                  {creator.category?.name || "Uncategorized"}
+                </Badge>
+                <Badge variant="outline" className="text-muted-foreground">
+                  <span className="mr-1">{getEmojiFlagByName(creator.country)}</span>
+                  {creator.country}
+                </Badge>
+              </div>
             </CardContent>
           </Card>
 

@@ -16,6 +16,7 @@ import {
   VOTE_PRICE_KES_INTERNATIONAL,
   convertFromKES,
   formatCurrency,
+  getEmojiFlagByName,
 } from "@/lib/africanCountries";
 
 interface VoteModalProps {
@@ -389,7 +390,7 @@ const VoteModal = ({
                 </Badge>
               )}
               <Badge variant="outline" className="text-muted-foreground text-[10px] px-2 py-0">
-                <Globe className="h-2.5 w-2.5 mr-0.5" />
+                <span className="mr-1">{getEmojiFlagByName(creatorCountry)}</span>
                 {creatorCountry}
               </Badge>
             </div>
