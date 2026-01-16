@@ -14,6 +14,7 @@ import { useAuth, useUserRole } from "@/hooks/useAuth";
 import { useCategories } from "@/hooks/useCreators";
 import { supabase } from "@/integrations/supabase/client";
 import Logo from "@/components/Logo";
+import { africanCountries, getEmojiFlag } from "@/lib/africanCountries";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -25,6 +26,7 @@ const signUpSchema = signInSchema.extend({
   alias: z.string().min(2, "Alias is required").regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores"),
   phone: z.string().optional(),
   categoryId: z.string().min(1, "Category is required"),
+  country: z.string().min(1, "Country is required"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -57,6 +59,7 @@ const Auth = () => {
     alias: "",
     phone: "",
     categoryId: "",
+    country: "Kenya",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -119,6 +122,7 @@ const Auth = () => {
           alias: formData.alias,
           phone: formData.phone,
           categoryId: formData.categoryId,
+          country: formData.country,
         });
         if (error) throw error;
 
@@ -216,13 +220,30 @@ const Auth = () => {
                     <Label htmlFor="category">Category</Label>
                     <Select value={formData.categoryId} onValueChange={(v) => handleChange("categoryId", v)}>
                       <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border border-border z-50">
                         {categories?.map((cat) => (
                           <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     {errors.categoryId && <p className="text-sm text-destructive mt-1">{errors.categoryId}</p>}
+                  </div>
+                  <div>
+                    <Label htmlFor="country">Country</Label>
+                    <Select value={formData.country} onValueChange={(v) => handleChange("country", v)}>
+                      <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                      <SelectContent className="bg-background border border-border z-50 max-h-60">
+                        {africanCountries.map((country) => (
+                          <SelectItem key={country.code} value={country.name}>
+                            <span className="flex items-center gap-2">
+                              <span>{getEmojiFlag(country.code)}</span>
+                              <span>{country.name}</span>
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.country && <p className="text-sm text-destructive mt-1">{errors.country}</p>}
                   </div>
                 </>
               )}

@@ -107,6 +107,7 @@ const Nominees = () => {
                   fullName={creator.full_name}
                   alias={creator.alias}
                   category={creator.category?.name || "Uncategorized"}
+                  country={creator.country}
                   profilePhotoUrl={creator.profile_photo_url || undefined}
                   voteCount={creator.vote_count ?? 0}
                   rank={index + 1}
