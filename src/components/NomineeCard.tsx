@@ -7,12 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import VoteModal from "./VoteModal";
 import { getOptimizedUrl, isCloudinaryUrl } from "@/lib/cloudinary";
+import { getEmojiFlagByName } from "@/lib/africanCountries";
 
 interface NomineeCardProps {
   id: string;
   fullName: string;
   alias: string;
   category: string;
+  country?: string;
   profilePhotoUrl?: string;
   voteCount: number;
   rank: number;
@@ -24,6 +26,7 @@ const NomineeCard = ({
   fullName,
   alias,
   category,
+  country = "Kenya",
   profilePhotoUrl,
   voteCount,
   rank,
@@ -102,7 +105,8 @@ const NomineeCard = ({
 
             {/* Info - Clickable */}
             <Link to={`/nominee/${id}`} className="hover:opacity-80 transition-opacity">
-              <h3 className="font-serif text-sm md:text-lg font-semibold text-foreground mb-1 line-clamp-1">
+              <h3 className="font-serif text-sm md:text-lg font-semibold text-foreground mb-1 line-clamp-1 flex items-center justify-center gap-1">
+                <span className="text-base">{getEmojiFlagByName(country)}</span>
                 {fullName}
               </h3>
             </Link>
@@ -148,6 +152,7 @@ const NomineeCard = ({
         creatorAlias={alias}
         creatorPhoto={profilePhotoUrl}
         creatorCategory={category}
+        creatorCountry={country}
         onVoteSuccess={onVoteSuccess}
       />
     </>
