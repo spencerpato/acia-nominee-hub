@@ -279,10 +279,21 @@ const VoteModal = ({
     setPaymentState("initiating");
     setErrorMessage("");
 
-    // Convert amount to smallest currency unit (kobo, pesewas, etc.)
-    const amountInSmallestUnit = displayAmount * 100;
+    // For Kenyan Paystack account, always use KES currency
+    // Calculate the KES amount based on votes (20 KES per vote for international)
+    const kesAmount = votes * VOTE_PRICE_KES_INTERNATIONAL;
+    // Convert to smallest unit (cents) - multiply by 100
+    const amountInCents = kesAmount * 100;
 
     try {
+      console.log("Initiating Paystack payment:", {
+        creator_id: creatorId,
+        email: email,
+        amount: amountInCents,
+        votes_expected: votes,
+        currency: "KES", // Always use KES for Kenyan Paystack account
+      });
+
       const response = await fetch(
         "https://qprtljmxfulproevgydc.supabase.co/functions/v1/initiate-paystack",
         {
@@ -293,24 +304,33 @@ const VoteModal = ({
           body: JSON.stringify({
             creator_id: creatorId,
             email: email,
-            amount: amountInSmallestUnit,
+            amount: amountInCents,
             votes_expected: votes,
-            currency: currency,
+            currency: "KES", // Always use KES for Kenyan Paystack account
             callback_url: `${window.location.origin}/vote-success`,
           }),
         }
       );
 
       const result = await response.json();
+      
+      // Log full response for debugging
+      console.log("Paystack initiate response:", result);
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to initiate payment");
+        console.error("Paystack initiate failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          result: result,
+        });
+        throw new Error(result.error || result.message || "Failed to initiate payment");
       }
 
       // Redirect to Paystack checkout
       if (result.authorization_url) {
         window.location.href = result.authorization_url;
       } else {
+        console.error("No authorization URL in response:", result);
         throw new Error("No authorization URL received");
       }
     } catch (error) {
