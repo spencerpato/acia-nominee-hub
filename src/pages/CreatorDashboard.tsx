@@ -3,7 +3,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { 
   Menu, Bell, Trophy, Banknote, Share2, Copy, Upload, 
   LayoutGrid, BarChart3, Lightbulb, User, TrendingUp,
-  Loader2
+  Loader2, Wallet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -212,6 +212,9 @@ const CreatorDashboard = () => {
               <Link to="/dashboard/profile" className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
                 <User className="h-5 w-5" /> Profile
               </Link>
+              <Link to="/dashboard/payout" className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                <Wallet className="h-5 w-5" /> Payout
+              </Link>
               <hr className="my-2" />
               <Button variant="ghost" onClick={handleSignOut} className="justify-start text-destructive">
                 Sign Out
@@ -377,10 +380,17 @@ const CreatorDashboard = () => {
           </Link>
           <Link 
             to="/dashboard/profile" 
-            className={`flex flex-col items-center gap-1 p-2 ${location.pathname === '/dashboard/profile' ? 'text-blue-600' : 'text-muted-foreground'}`}
+            className={`flex flex-col items-center gap-1 p-2 ${location.pathname === '/dashboard/profile' ? 'text-primary' : 'text-muted-foreground'}`}
           >
             <User className="h-5 w-5" />
             <span className="text-xs">Profile</span>
+          </Link>
+          <Link 
+            to="/dashboard/payout" 
+            className={`flex flex-col items-center gap-1 p-2 ${location.pathname === '/dashboard/payout' ? 'text-primary' : 'text-muted-foreground'}`}
+          >
+            <Wallet className="h-5 w-5" />
+            <span className="text-xs">Payout</span>
           </Link>
         </div>
       </nav>

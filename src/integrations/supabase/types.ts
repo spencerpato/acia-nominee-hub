@@ -242,6 +242,78 @@ export type Database = {
           },
         ]
       }
+      payout_preferences: {
+        Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          card_expiry: string | null
+          card_number: string | null
+          card_type: string | null
+          cardholder_name: string | null
+          city: string | null
+          confirmed: boolean
+          country: string
+          created_at: string
+          id: string
+          mailing_address: string | null
+          mailing_name: string | null
+          mpesa_name: string | null
+          mpesa_number: string | null
+          payout_method: string
+          postal_code: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          card_expiry?: string | null
+          card_number?: string | null
+          card_type?: string | null
+          cardholder_name?: string | null
+          city?: string | null
+          confirmed?: boolean
+          country?: string
+          created_at?: string
+          id?: string
+          mailing_address?: string | null
+          mailing_name?: string | null
+          mpesa_name?: string | null
+          mpesa_number?: string | null
+          payout_method: string
+          postal_code?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          card_expiry?: string | null
+          card_number?: string | null
+          card_type?: string | null
+          cardholder_name?: string | null
+          city?: string | null
+          confirmed?: boolean
+          country?: string
+          created_at?: string
+          id?: string
+          mailing_address?: string | null
+          mailing_name?: string | null
+          mpesa_name?: string | null
+          mpesa_number?: string | null
+          payout_method?: string
+          postal_code?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

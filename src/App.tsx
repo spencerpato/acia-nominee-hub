@@ -25,6 +25,7 @@ import Privacy from "./pages/Privacy";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 import VoteSuccess from "./pages/VoteSuccess";
+import PayoutPreferences from "./pages/PayoutPreferences";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/dashboard/tips" element={<CreatorTips />} />
           <Route path="/dashboard/profile" element={<CreatorProfile />} />
           <Route path="/dashboard/rankings" element={<DashboardRankings />} />
+          <Route path="/dashboard/payout" element={<PayoutPreferences />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/nominees" element={<AdminNominees />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
