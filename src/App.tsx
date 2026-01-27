@@ -16,6 +16,7 @@ import CreatorProfile from "./pages/CreatorProfile";
 import DashboardRankings from "./pages/DashboardRankings";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminNominees from "./pages/AdminNominees";
+import AdminPayouts from "./pages/AdminPayouts";
 import Leaderboard from "./pages/Leaderboard";
 import Gallery from "./pages/Gallery";
 import About from "./pages/About";
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/dashboard/payout" element={<PayoutPreferences />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/nominees" element={<AdminNominees />} />
+          <Route path="/admin/payouts" element={<AdminPayouts />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/about" element={<About />} />
