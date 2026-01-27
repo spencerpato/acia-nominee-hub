@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, LogOut, Users, CheckCircle, XCircle, Trash2, Plus, FolderOpen, Image, Upload, Mail, UserCheck } from "lucide-react";
+import { Loader2, LogOut, Users, CheckCircle, XCircle, Trash2, Plus, FolderOpen, Image, Upload, Mail, UserCheck, Wallet } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -250,6 +250,11 @@ const AdminDashboard = () => {
             <Button asChild className="btn-gold flex-1 sm:flex-none">
               <Link to="/admin/nominees">
                 <UserCheck className="h-4 w-4 mr-2" /> Nominees
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="flex-1 sm:flex-none">
+              <Link to="/admin/payouts">
+                <Wallet className="h-4 w-4 mr-2" /> Payouts
               </Link>
             </Button>
             <Button variant="outline" onClick={handleSignOut} className="flex-1 sm:flex-none">
